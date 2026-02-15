@@ -13,16 +13,21 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-space-grotesk);
+  --font-sans: var(--font-public-sans);
   --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-public-sans), sans-serif;
   background-image:
     radial-gradient(circle at 20% -10%, #bdd6cb 0%, transparent 35%),
     radial-gradient(circle at 90% 0%, #d4ddf2 0%, transparent 30%);
+}
+
+.font-display {
+  font-family: var(--font-fraunces), serif;
 }
 
 .wireframe-panel {

@@ -88,3 +88,14 @@ Then open `http://localhost:3000`.
 - Uses local SQLite at `data/catalog.db`
 - Auto-creates tables for GPUs, CPUs, and prebuilts
 - Auto-seeds starter records on first run
+
+## Account System
+- Adds SQLite-backed `users` and `sessions` tables
+- Secure password hashing via Node `scrypt`
+- HTTP-only cookie sessions
+- Roles: `USER`, `DEV`, `ADMIN`
+- The only permitted admin email is `gustavpaul@tamkivi.com`
+
+### Optional environment variables
+- `DEV_SIGNUP_CODE` to allow DEV account creation
+- `ADMIN_SETUP_CODE` required to create the admin account for `gustavpaul@tamkivi.com`

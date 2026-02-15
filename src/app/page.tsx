@@ -1,4 +1,5 @@
 import { listCpus, listGpus, listPrebuilts } from "@/lib/catalog-db";
+import { AuthPanel } from "@/components/auth-panel";
 
 export default function Home() {
   const profileCards = [
@@ -28,7 +29,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl">
         <header className="stagger-in mb-8">
           <p className="label-pill inline-block">fart_picker wireframes</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
+          <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
             Pick AI-ready PC parts with
             <span className="ml-2 text-[color:var(--accent)]">LLM capability mode</span>
           </h1>
@@ -45,17 +46,19 @@ export default function Home() {
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <p className="label-pill inline-block">AI Build Profile</p>
-              <h2 className="mt-4 text-xl font-semibold">{profile.name}</h2>
-              <p className="mt-3 font-mono text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
+              <h2 className="font-display mt-4 text-2xl font-semibold">{profile.name}</h2>
+              <p className="mt-3 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
               <p className="mt-2 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
             </article>
           ))}
         </div>
 
+        <AuthPanel />
+
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "350ms" }}>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-2xl font-semibold">GPU Catalog</h3>
+              <h3 className="font-display text-3xl font-semibold">GPU Catalog</h3>
               <span className="label-pill">{gpus.length} listed</span>
             </div>
             <div className="space-y-3">
@@ -73,7 +76,7 @@ export default function Home() {
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "450ms" }}>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-2xl font-semibold">CPU Catalog</h3>
+              <h3 className="font-display text-3xl font-semibold">CPU Catalog</h3>
               <span className="label-pill">{cpus.length} listed</span>
             </div>
             <div className="space-y-3">
@@ -92,13 +95,13 @@ export default function Home() {
 
         <section className="wireframe-panel mt-6 p-6 stagger-in" style={{ animationDelay: "550ms" }}>
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-2xl font-semibold">Prebuilt Catalog</h3>
+            <h3 className="font-display text-3xl font-semibold">Prebuilt Catalog</h3>
             <span className="label-pill">{prebuilts.length} listed</span>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {prebuilts.map((prebuilt) => (
               <article key={prebuilt.id} className="rounded-lg border border-[color:var(--panel-border)] p-4">
-                <p className="text-lg font-semibold">{prebuilt.name}</p>
+                <p className="font-display text-xl font-semibold">{prebuilt.name}</p>
                 <p className="mt-1 text-sm text-[color:var(--muted)]">{prebuilt.vendor}</p>
                 <p className="mt-2 text-sm text-[color:var(--muted)]">{prebuilt.description}</p>
                 <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">CPU: {prebuilt.cpu_name}</p>

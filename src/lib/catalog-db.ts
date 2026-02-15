@@ -1,6 +1,9 @@
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+
+export type UserRole = "ADMIN" | "DEV" | "USER";
 
 export type GpuRecord = {
   id: number;
@@ -37,13 +40,79 @@ export type PrebuiltRecord = {
   gpu_name: string;
 };
 
+type DbUserRecord = {
+  id: number;
+  email: string;
+  password_hash: string;
+  role: UserRole;
+  created_at: string;
+};
+
+export type PublicUser = {
+  id: number;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+};
+
+export type AccountSummary = {
+  total: number;
+  admins: number;
+  devs: number;
+  users: number;
+};
+
 const globalForCatalogDb = globalThis as unknown as {
   catalogDb: DatabaseSync | undefined;
 };
 
-function seedIfEmpty(db: DatabaseSync): void {
-  const gpuCount = (db.prepare("SELECT COUNT(*) AS count FROM gpus").get() as { count: number }).count;
-  if (gpuCount > 0) {
+const SESSION_DAYS = 7;
+const ADMIN_EMAIL = "gustavpaul@tamkivi.com";
+
+function toPublicUser(user: DbUserRecord): PublicUser {
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    createdAt: user.created_at,
+  };
+}
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16);
+  const key = scryptSync(password, salt, 64);
+  return `${salt.toString("hex")}:${key.toString("hex")}`;
+}
+
+function verifyPassword(password: string, storedHash: string): boolean {
+  const [saltHex, keyHex] = storedHash.split(":");
+  if (!saltHex || !keyHex) {
+    return false;
+  }
+
+  const salt = Buffer.from(saltHex, "hex");
+  const expectedKey = Buffer.from(keyHex, "hex");
+  const candidateKey = scryptSync(password, salt, expectedKey.length);
+
+  return timingSafeEqual(expectedKey, candidateKey);
+}
+
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function createSessionToken(): string {
+  return randomBytes(32).toString("base64url");
+}
+
+function expiresAt(days: number): string {
+  const until = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  return until.toISOString();
+}
+
+function seedCatalogIfEmpty(db: DatabaseSync): void {
+  const row = db.prepare("SELECT COUNT(*) AS count FROM gpus").get() as { count: number };
+  if (row.count > 0) {
     return;
   }
 
@@ -113,9 +182,32 @@ function initDatabase(): DatabaseSync {
       FOREIGN KEY (cpu_id) REFERENCES cpus(id),
       FOREIGN KEY (gpu_id) REFERENCES gpus(id)
     );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL CHECK(role IN ('ADMIN', 'DEV', 'USER')),
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TEXT NOT NULL,
+      ip_address TEXT,
+      user_agent TEXT,
+      invalidated_at TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
+    CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
   `);
 
-  seedIfEmpty(db);
+  seedCatalogIfEmpty(db);
   return db;
 }
 
@@ -124,6 +216,18 @@ function getDb(): DatabaseSync {
     globalForCatalogDb.catalogDb = initDatabase();
   }
   return globalForCatalogDb.catalogDb;
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function getUserByEmail(email: string): DbUserRecord | null {
+  const db = getDb();
+  const user = db
+    .prepare("SELECT id, email, password_hash, role, created_at FROM users WHERE email = ?")
+    .get(normalizeEmail(email));
+  return (user as DbUserRecord | undefined) ?? null;
 }
 
 export function listGpus(): GpuRecord[] {
@@ -162,4 +266,154 @@ export function listPrebuilts(): PrebuiltRecord[] {
       ORDER BY p.price_usd DESC
     `)
     .all() as PrebuiltRecord[];
+}
+
+export function registerAccount(input: {
+  email: string;
+  password: string;
+  requestedRole?: string;
+  devSignupCode?: string;
+  adminSetupCode?: string;
+}): { ok: true; user: PublicUser } | { ok: false; message: string } {
+  const db = getDb();
+  const email = normalizeEmail(input.email);
+  const password = input.password;
+
+  if (!email.includes("@")) {
+    return { ok: false, message: "Please enter a valid email address." };
+  }
+
+  if (password.length < 12) {
+    return { ok: false, message: "Password must be at least 12 characters." };
+  }
+
+  const hasExisting = db.prepare("SELECT id FROM users WHERE email = ?").get(email) as { id: number } | undefined;
+  if (hasExisting) {
+    return { ok: false, message: "An account with this email already exists." };
+  }
+
+  let role: UserRole = "USER";
+  if (email === ADMIN_EMAIL) {
+    const anyAdmin = db.prepare("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1").get() as { id: number } | undefined;
+    if (anyAdmin) {
+      return { ok: false, message: "Admin account already exists." };
+    }
+
+    const adminSetupKey = process.env.ADMIN_SETUP_CODE;
+    if (!adminSetupKey || input.adminSetupCode !== adminSetupKey) {
+      return { ok: false, message: "Admin setup code is required for the admin account." };
+    }
+
+    role = "ADMIN";
+  } else {
+    if (input.requestedRole === "ADMIN") {
+      return { ok: false, message: "Admin role cannot be self-assigned." };
+    }
+
+    if (input.requestedRole === "DEV") {
+      const devSignupKey = process.env.DEV_SIGNUP_CODE;
+      if (!devSignupKey || input.devSignupCode !== devSignupKey) {
+        return { ok: false, message: "Valid dev signup code is required for DEV accounts." };
+      }
+      role = "DEV";
+    }
+  }
+
+  const passwordHash = hashPassword(password);
+  db.prepare("INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)").run(email, passwordHash, role);
+
+  const inserted = getUserByEmail(email);
+  if (!inserted) {
+    return { ok: false, message: "Failed to create account." };
+  }
+
+  return { ok: true, user: toPublicUser(inserted) };
+}
+
+export function createSessionForCredentials(input: {
+  email: string;
+  password: string;
+  ipAddress?: string;
+  userAgent?: string;
+}): { ok: true; token: string; user: PublicUser; expiresAt: string } | { ok: false; message: string } {
+  const db = getDb();
+  const user = getUserByEmail(input.email);
+
+  if (!user || !verifyPassword(input.password, user.password_hash)) {
+    return { ok: false, message: "Invalid email or password." };
+  }
+
+  const token = createSessionToken();
+  const tokenHash = hashToken(token);
+  const expiry = expiresAt(SESSION_DAYS);
+
+  db.prepare(
+    "INSERT INTO sessions (user_id, token_hash, expires_at, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)",
+  ).run(user.id, tokenHash, expiry, input.ipAddress ?? null, input.userAgent ?? null);
+
+  return {
+    ok: true,
+    token,
+    user: toPublicUser(user),
+    expiresAt: expiry,
+  };
+}
+
+export function getUserFromSessionToken(token: string | undefined): PublicUser | null {
+  if (!token) {
+    return null;
+  }
+
+  const db = getDb();
+  const tokenHash = hashToken(token);
+  const row = db
+    .prepare(
+      `
+      SELECT u.id, u.email, u.password_hash, u.role, u.created_at
+      FROM sessions s
+      JOIN users u ON u.id = s.user_id
+      WHERE s.token_hash = ?
+        AND s.invalidated_at IS NULL
+        AND datetime(s.expires_at) > datetime('now')
+      LIMIT 1
+    `,
+    )
+    .get(tokenHash);
+
+  return row ? toPublicUser(row as DbUserRecord) : null;
+}
+
+export function invalidateSessionToken(token: string | undefined): void {
+  if (!token) {
+    return;
+  }
+
+  const db = getDb();
+  const tokenHash = hashToken(token);
+  db.prepare("UPDATE sessions SET invalidated_at = datetime('now') WHERE token_hash = ?").run(tokenHash);
+}
+
+export function getAccountSummary(): AccountSummary {
+  const db = getDb();
+  const row = db
+    .prepare(`
+      SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN role = 'ADMIN' THEN 1 ELSE 0 END) AS admins,
+        SUM(CASE WHEN role = 'DEV' THEN 1 ELSE 0 END) AS devs,
+        SUM(CASE WHEN role = 'USER' THEN 1 ELSE 0 END) AS users
+      FROM users
+    `)
+    .get() as { total: number; admins: number; devs: number; users: number };
+
+  return {
+    total: row.total ?? 0,
+    admins: row.admins ?? 0,
+    devs: row.devs ?? 0,
+    users: row.users ?? 0,
+  };
+}
+
+export function getAdminEmail(): string {
+  return ADMIN_EMAIL;
 }
