@@ -130,7 +130,7 @@ export function AuthPanel() {
         onClick={() => setOpen((current) => !current)}
         className="label-pill cursor-pointer"
       >
-        {me?.user ? `${me.user.email} (${me.user.role})` : "Account"}
+        {me?.user ? `Profile (${me.user.role})` : "Profile"}
       </button>
 
       {open ? (

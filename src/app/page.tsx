@@ -34,7 +34,14 @@ export default function Home() {
       <section className="mx-auto max-w-6xl">
         <header className="stagger-in mb-8">
           <div className="flex items-start justify-between gap-4">
-            <p className="label-pill inline-block">fart_picker wireframes</p>
+            <div className="flex items-center gap-2">
+              <a href="#about" className="label-pill inline-block">
+                About
+              </a>
+              <a href="#faq" className="label-pill inline-block">
+                FAQ
+              </a>
+            </div>
             <AuthPanel />
           </div>
           <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
@@ -45,6 +52,23 @@ export default function Home() {
             Local SQLite-backed catalog for GPUs, CPUs, and prebuilts. This page renders live data from the database.
           </p>
         </header>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <section id="about" className="wireframe-panel p-6">
+            <h2 className="font-display text-3xl font-semibold">About</h2>
+            <p className="mt-3 text-sm text-[color:var(--muted)]">
+              fart_picker helps users choose AI-capable PC hardware with profile-specific build options, compatibility
+              awareness, and local LLM-oriented recommendations.
+            </p>
+          </section>
+          <section id="faq" className="wireframe-panel p-6">
+            <h2 className="font-display text-3xl font-semibold">FAQ</h2>
+            <p className="mt-3 text-sm text-[color:var(--muted)]">
+              Select a profile to view possible builds. Sign up to save your profile access. The admin account is
+              reserved for `gustavpaul@tamkivi.com`.
+            </p>
+          </section>
+        </div>
 
         <ProfileBuildsBrowser profiles={profileCards} builds={profileBuilds} />
 
