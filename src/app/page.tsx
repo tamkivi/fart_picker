@@ -1,6 +1,7 @@
 import { listCpus, listGpus, listPrebuilts, listProfileBuilds } from "@/lib/catalog-db";
 import { AuthPanel } from "@/components/auth-panel";
 import { ProfileBuildsBrowser } from "@/components/profile-builds-browser";
+import Link from "next/link";
 
 export default function Home() {
   const profileCards = [
@@ -35,12 +36,12 @@ export default function Home() {
         <header className="stagger-in mb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-2">
-              <a href="#about" className="label-pill inline-block">
+              <Link href="/about" className="label-pill inline-block">
                 About
-              </a>
-              <a href="#faq" className="label-pill inline-block">
+              </Link>
+              <Link href="/faq" className="label-pill inline-block">
                 FAQ
-              </a>
+              </Link>
             </div>
             <AuthPanel />
           </div>
@@ -52,23 +53,6 @@ export default function Home() {
             Local SQLite-backed catalog for GPUs, CPUs, and prebuilts. This page renders live data from the database.
           </p>
         </header>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <section id="about" className="wireframe-panel p-6">
-            <h2 className="font-display text-3xl font-semibold">About</h2>
-            <p className="mt-3 text-sm text-[color:var(--muted)]">
-              fart_picker helps users choose AI-capable PC hardware with profile-specific build options, compatibility
-              awareness, and local LLM-oriented recommendations.
-            </p>
-          </section>
-          <section id="faq" className="wireframe-panel p-6">
-            <h2 className="font-display text-3xl font-semibold">FAQ</h2>
-            <p className="mt-3 text-sm text-[color:var(--muted)]">
-              Select a profile to view possible builds. Sign up to save your profile access. The admin account is
-              reserved for `gustavpaul@tamkivi.com`.
-            </p>
-          </section>
-        </div>
 
         <ProfileBuildsBrowser profiles={profileCards} builds={profileBuilds} />
 
