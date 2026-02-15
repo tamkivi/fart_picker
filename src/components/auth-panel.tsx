@@ -56,56 +56,60 @@ export function AuthPanel() {
     event.preventDefault();
     setLoading(true);
     setMessage(null);
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          adminSetupCode,
+        }),
+      });
 
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        adminSetupCode,
-      }),
-    });
+      const data = (await response.json()) as { message?: string };
+      if (!response.ok) {
+        setMessage(data.message ?? "Registration failed.");
+        return;
+      }
 
-    const data = (await response.json()) as { message?: string };
-    setLoading(false);
-
-    if (!response.ok) {
-      setMessage(data.message ?? "Registration failed.");
-      return;
+      setMessage("Account created and signed in.");
+      await refreshMe();
+    } catch {
+      setMessage("Signup request failed. Check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setMessage("Account created and signed in.");
-    await refreshMe();
-    setOpen(false);
   }
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setMessage(null);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+      const data = (await response.json()) as { message?: string };
+      if (!response.ok) {
+        setMessage(data.message ?? "Login failed.");
+        return;
+      }
 
-    const data = (await response.json()) as { message?: string };
-    setLoading(false);
-
-    if (!response.ok) {
-      setMessage(data.message ?? "Login failed.");
-      return;
+      setMessage("Signed in successfully.");
+      await refreshMe();
+    } catch {
+      setMessage("Login request failed. Check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setMessage("Signed in successfully.");
-    await refreshMe();
-    setOpen(false);
   }
 
   async function handleLogout() {
@@ -131,6 +135,7 @@ export function AuthPanel() {
 
       {open ? (
         <div className="wireframe-panel absolute right-0 top-9 z-[1000] w-[min(92vw,360px)] p-4">
+          {message ? <p className="mb-3 text-xs text-[color:var(--muted)]">{message}</p> : null}
           {me?.user ? (
             <div>
               <p className="font-semibold">Signed in</p>
@@ -226,8 +231,6 @@ export function AuthPanel() {
           )}
         </div>
       ) : null}
-
-      {message ? <p className="mt-2 max-w-[320px] text-xs text-[color:var(--muted)]">{message}</p> : null}
     </div>
   );
 }
