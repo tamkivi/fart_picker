@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthPanel } from "@/components/auth-panel";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AboutPage() {
   return (
@@ -15,7 +16,10 @@ export default function AboutPage() {
                 FAQ
               </Link>
             </div>
-            <AuthPanel />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <AuthPanel />
+            </div>
           </div>
           <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">About fart_picker</h1>
           <p className="mt-4 max-w-4xl text-lg text-[color:var(--muted)]">

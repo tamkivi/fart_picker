@@ -1,6 +1,7 @@
 import { listCpus, listGpus, listPrebuilts, listProfileBuilds } from "@/lib/catalog-db";
 import { AuthPanel } from "@/components/auth-panel";
 import { ProfileBuildsBrowser } from "@/components/profile-builds-browser";
+import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 
 export default function Home() {
@@ -43,7 +44,10 @@ export default function Home() {
                 FAQ
               </Link>
             </div>
-            <AuthPanel />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <AuthPanel />
+            </div>
           </div>
           <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
             Pick AI-ready PC parts with

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthPanel } from "@/components/auth-panel";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const faqs = [
   {
@@ -12,7 +13,7 @@ const faqs = [
   },
   {
     q: "How is the admin account determined?",
-    a: "Only gustavpaul@tamkivi.com can become ADMIN on signup, and only with ADMIN_SETUP_CODE. All other signups become USER accounts.",
+    a: "Admin signup requires ADMIN_SETUP_CODE. Standard signups become USER accounts.",
   },
   {
     q: "Why do some builds cost more than expected?",
@@ -42,7 +43,10 @@ export default function FaqPage() {
                 About
               </Link>
             </div>
-            <AuthPanel />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <AuthPanel />
+            </div>
           </div>
           <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">FAQ</h1>
           <p className="mt-4 max-w-4xl text-lg text-[color:var(--muted)]">

@@ -11,7 +11,6 @@ type AuthUser = {
 
 type MeResponse = {
   user: AuthUser | null;
-  adminEmail: string;
 };
 
 type AuthMode = "login" | "register";
@@ -190,7 +189,7 @@ export function AuthPanel() {
                   <input
                     value={adminSetupCode}
                     onChange={(event) => setAdminSetupCode(event.target.value)}
-                    placeholder={`ADMIN_SETUP_CODE (${me?.adminEmail ?? "gustavpaul@tamkivi.com"})`}
+                    placeholder="ADMIN_SETUP_CODE (admin signup only)"
                     className="w-full rounded-md border border-[color:var(--panel-border)] px-3 py-2 text-sm"
                     type="password"
                   />
