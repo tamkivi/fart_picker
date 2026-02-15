@@ -28,7 +28,10 @@ export default function Home() {
     <main className="min-h-screen px-6 py-10 md:px-12">
       <section className="mx-auto max-w-6xl">
         <header className="stagger-in mb-8">
-          <p className="label-pill inline-block">fart_picker wireframes</p>
+          <div className="flex items-start justify-between gap-4">
+            <p className="label-pill inline-block">fart_picker wireframes</p>
+            <AuthPanel />
+          </div>
           <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
             Pick AI-ready PC parts with
             <span className="ml-2 text-[color:var(--accent)]">LLM capability mode</span>
@@ -52,8 +55,6 @@ export default function Home() {
             </article>
           ))}
         </div>
-
-        <AuthPanel />
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "350ms" }}>
