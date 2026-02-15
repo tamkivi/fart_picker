@@ -67,3 +67,19 @@ Each suggested part includes plain-language rationale:
 
 ## Mission
 Make AI-capable PC building practical, transparent, and accessible by translating complex hardware constraints into clear, actionable recommendations.
+
+## Wireframe Status
+The project now includes a `Next.js + TypeScript + Tailwind CSS` frontend scaffold with homepage wireframes for:
+- AI build profile selection
+- Parts recommendation table with AI scoring
+- Compatibility check panel
+- LLM capability mode output
+- Saved build snapshot + export CTA
+
+## Run Locally
+```bash
+npm install
+npm run dev
+```
+
+Then open `http://localhost:3000`.

@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f1ea;
+  --foreground: #1d2a35;
+  --panel: #fffdf8;
+  --panel-border: #d0c6b5;
+  --accent: #136f63;
+  --accent-2: #2f4b8f;
+  --muted: #596474;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  background-image:
+    radial-gradient(circle at 20% -10%, #bdd6cb 0%, transparent 35%),
+    radial-gradient(circle at 90% 0%, #d4ddf2 0%, transparent 30%);
+}
+
+.wireframe-panel {
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(180deg, var(--panel) 0%, #fff 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(20, 35, 54, 0.08);
+}
+
+.label-pill {
+  border: 1px solid var(--panel-border);
+  background: #fbf8f1;
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 12px;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.stagger-in {
+  animation: stagger-in 500ms ease-out both;
+}
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
