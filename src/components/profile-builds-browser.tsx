@@ -1,0 +1,101 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+type Profile = {
+  key: string;
+  name: string;
+  target: string;
+  priority: string;
+};
+
+type ProfileBuild = {
+  id: number;
+  profile_key: string;
+  build_name: string;
+  target_model: string;
+  ram_gb: number;
+  storage_gb: number;
+  estimated_price_usd: number;
+  notes: string;
+  source_refs: string;
+  cpu_name: string;
+  gpu_name: string;
+};
+
+export function ProfileBuildsBrowser({
+  profiles,
+  builds,
+}: {
+  profiles: Profile[];
+  builds: ProfileBuild[];
+}) {
+  const [activeProfileKey, setActiveProfileKey] = useState(profiles[0]?.key ?? "");
+
+  const buildsByProfile = useMemo(() => {
+    return builds.reduce<Record<string, ProfileBuild[]>>((acc, build) => {
+      if (!acc[build.profile_key]) {
+        acc[build.profile_key] = [];
+      }
+      acc[build.profile_key].push(build);
+      return acc;
+    }, {});
+  }, [builds]);
+
+  const activeBuilds = buildsByProfile[activeProfileKey] ?? [];
+
+  return (
+    <section className="mt-8">
+      <div className="grid gap-6 md:grid-cols-3">
+        {profiles.map((profile, index) => {
+          const isActive = activeProfileKey === profile.key;
+          return (
+            <button
+              key={profile.key}
+              type="button"
+              onClick={() => setActiveProfileKey(profile.key)}
+              className={`wireframe-panel stagger-in p-5 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <p className="label-pill inline-block">AI Build Profile</p>
+              <h2 className="font-display mt-4 text-2xl font-semibold">{profile.name}</h2>
+              <p className="mt-3 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
+              <p className="mt-2 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
+                {isActive ? "Selected" : "Click to view builds"}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+
+      <section className="wireframe-panel mt-6 p-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
+          <span className="label-pill">{activeBuilds.length} options</span>
+        </div>
+
+        {activeBuilds.length === 0 ? (
+          <p className="text-sm text-[color:var(--muted)]">No builds available for this profile yet.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {activeBuilds.map((build) => (
+              <article key={build.id} className="rounded-lg border border-[color:var(--panel-border)] p-4">
+                <p className="font-display text-xl font-semibold">{build.build_name}</p>
+                <p className="mt-2 text-sm text-[color:var(--muted)]">{build.notes}</p>
+                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">GPU: {build.gpu_name}</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">CPU: {build.cpu_name}</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">
+                  RAM: {build.ram_gb}GB | Storage: {build.storage_gb}GB
+                </p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">Model target: {build.target_model}</p>
+                <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">Source: {build.source_refs}</p>
+                <p className="mt-3 text-base font-semibold">Est. ${build.estimated_price_usd}</p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </section>
+  );
+}

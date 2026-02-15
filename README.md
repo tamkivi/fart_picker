@@ -88,6 +88,8 @@ Then open `http://localhost:3000`.
 - Uses local SQLite at `data/catalog.db`
 - Auto-creates tables for GPUs, CPUs, and prebuilts
 - Auto-seeds starter records on first run
+- Auto-seeds `profile_builds` options for each AI build profile
+- Profile build recommendations are seeded from online vendor data (NVIDIA, AMD, Intel specs/pricing)
 
 ## Account System
 - Adds SQLite-backed `users` and `sessions` tables

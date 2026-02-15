@@ -1,19 +1,23 @@
-import { listCpus, listGpus, listPrebuilts } from "@/lib/catalog-db";
+import { listCpus, listGpus, listPrebuilts, listProfileBuilds } from "@/lib/catalog-db";
 import { AuthPanel } from "@/components/auth-panel";
+import { ProfileBuildsBrowser } from "@/components/profile-builds-browser";
 
 export default function Home() {
   const profileCards = [
     {
+      key: "local-llm-inference",
       name: "Local LLM Inference",
       target: "7B-70B quantized models",
       priority: "Max VRAM per dollar",
     },
     {
+      key: "llm-finetune-starter",
       name: "LLM Fine-Tune Starter",
       target: "LoRA and adapter tuning",
       priority: "RAM + cooling stability",
     },
     {
+      key: "hybrid-ai-gaming",
       name: "Hybrid AI + Gaming",
       target: "Daytime dev, nighttime play",
       priority: "Balanced CPU/GPU spend",
@@ -23,6 +27,7 @@ export default function Home() {
   const gpus = listGpus();
   const cpus = listCpus();
   const prebuilts = listPrebuilts();
+  const profileBuilds = listProfileBuilds().map((build) => ({ ...build }));
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
@@ -41,20 +46,7 @@ export default function Home() {
           </p>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {profileCards.map((profile, index) => (
-            <article
-              key={profile.name}
-              className="wireframe-panel stagger-in p-5"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <p className="label-pill inline-block">AI Build Profile</p>
-              <h2 className="font-display mt-4 text-2xl font-semibold">{profile.name}</h2>
-              <p className="mt-3 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
-              <p className="mt-2 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
-            </article>
-          ))}
-        </div>
+        <ProfileBuildsBrowser profiles={profileCards} builds={profileBuilds} />
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "350ms" }}>
