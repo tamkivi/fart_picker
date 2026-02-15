@@ -83,3 +83,8 @@ npm run dev
 ```
 
 Then open `http://localhost:3000`.
+
+## Local Catalog Database
+- Uses local SQLite at `data/catalog.db`
+- Auto-creates tables for GPUs, CPUs, and prebuilts
+- Auto-seeds starter records on first run

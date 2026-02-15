@@ -1,3 +1,5 @@
+import { listCpus, listGpus, listPrebuilts } from "@/lib/catalog-db";
+
 export default function Home() {
   const profileCards = [
     {
@@ -17,13 +19,9 @@ export default function Home() {
     },
   ];
 
-  const parts = [
-    { slot: "GPU", pick: "RTX 4080 SUPER 16GB", score: "A+", note: "Strong local inference" },
-    { slot: "CPU", pick: "Ryzen 9 7900", score: "A", note: "Great perf-per-watt" },
-    { slot: "RAM", pick: "64GB DDR5-6000", score: "A+", note: "Fits 13B+ workflows" },
-    { slot: "Storage", pick: "2TB Gen4 NVMe", score: "A", note: "Fast model loading" },
-    { slot: "PSU", pick: "850W Gold ATX 3.0", score: "A", note: "Transient-safe for GPUs" },
-  ];
+  const gpus = listGpus();
+  const cpus = listCpus();
+  const prebuilts = listPrebuilts();
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
@@ -35,8 +33,7 @@ export default function Home() {
             <span className="ml-2 text-[color:var(--accent)]">LLM capability mode</span>
           </h1>
           <p className="mt-4 max-w-3xl text-lg text-[color:var(--muted)]">
-            Early product layout for the core builder flow: profile selection, parts scoring, compatibility validation,
-            and model-size readiness output.
+            Local SQLite-backed catalog for GPUs, CPUs, and prebuilts. This page renders live data from the database.
           </p>
         </header>
 
@@ -55,76 +52,69 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "350ms" }}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-semibold">Parts Selection</h3>
-              <span className="label-pill">Budget: $1,800</span>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-2xl font-semibold">GPU Catalog</h3>
+              <span className="label-pill">{gpus.length} listed</span>
             </div>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full border-collapse text-left">
-                <thead>
-                  <tr className="font-mono text-xs uppercase text-[color:var(--muted)]">
-                    <th className="border-b border-[color:var(--panel-border)] p-3">Slot</th>
-                    <th className="border-b border-[color:var(--panel-border)] p-3">Recommended Part</th>
-                    <th className="border-b border-[color:var(--panel-border)] p-3">AI Score</th>
-                    <th className="border-b border-[color:var(--panel-border)] p-3">Reason</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {parts.map((part) => (
-                    <tr key={part.slot}>
-                      <td className="border-b border-[color:var(--panel-border)] p-3 font-medium">{part.slot}</td>
-                      <td className="border-b border-[color:var(--panel-border)] p-3">{part.pick}</td>
-                      <td className="border-b border-[color:var(--panel-border)] p-3 font-mono">{part.score}</td>
-                      <td className="border-b border-[color:var(--panel-border)] p-3 text-[color:var(--muted)]">
-                        {part.note}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-3">
+              {gpus.map((gpu) => (
+                <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <p className="font-semibold">{gpu.name}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    {gpu.brand} | {gpu.vram_gb}GB VRAM | {gpu.architecture} | AI {gpu.ai_score}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">${gpu.price_usd}</p>
+                </div>
+              ))}
             </div>
           </section>
 
-          <aside className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "450ms" }}>
-            <h3 className="text-2xl font-semibold">Compatibility</h3>
-            <ul className="mt-4 space-y-3 font-mono text-sm">
-              <li className="rounded-lg border border-[color:var(--panel-border)] p-3">CPU socket: AM5 matches board</li>
-              <li className="rounded-lg border border-[color:var(--panel-border)] p-3">PSU headroom: 31% spare at spike</li>
-              <li className="rounded-lg border border-[color:var(--panel-border)] p-3">GPU clearance: 8mm margin in case</li>
-              <li className="rounded-lg border border-[color:var(--panel-border)] p-3">Thermals: add 2 top exhaust fans</li>
-            </ul>
-          </aside>
-        </div>
-
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "550ms" }}>
-            <h3 className="text-2xl font-semibold">LLM Capability Mode</h3>
-            <div className="mt-4 grid gap-4 font-mono text-sm">
-              <p className="rounded-lg border border-[color:var(--panel-border)] p-3">Estimated model fit: up to 34B (4-bit)</p>
-              <p className="rounded-lg border border-[color:var(--panel-border)] p-3">Expected throughput: 35-62 tok/s (13B q4)</p>
-              <p className="rounded-lg border border-[color:var(--panel-border)] p-3">Suggested runtimes: Ollama, llama.cpp, vLLM</p>
-              <p className="rounded-lg border border-[color:var(--panel-border)] p-3">Risk: context length over 16k may become RAM-bound</p>
+          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "450ms" }}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-2xl font-semibold">CPU Catalog</h3>
+              <span className="label-pill">{cpus.length} listed</span>
             </div>
-          </section>
-
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "650ms" }}>
-            <h3 className="text-2xl font-semibold">Saved Build Snapshot</h3>
-            <div className="mt-4 space-y-4">
-              <p className="rounded-lg border border-[color:var(--panel-border)] p-3 font-mono text-sm">
-                Build name: Budget Local LLM Box v1
-              </p>
-              <p className="rounded-lg border border-[color:var(--panel-border)] p-3 font-mono text-sm">Total: $1,786</p>
-              <p className="rounded-lg border border-[color:var(--panel-border)] p-3 font-mono text-sm">
-                Upgrade path: move to 24GB VRAM GPU for 70B q4 workflows
-              </p>
-              <button className="w-full rounded-lg bg-[color:var(--accent-2)] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90">
-                Export Build + Capability Report
-              </button>
+            <div className="space-y-3">
+              {cpus.map((cpu) => (
+                <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <p className="font-semibold">{cpu.name}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.ai_score}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">${cpu.price_usd}</p>
+                </div>
+              ))}
             </div>
           </section>
         </div>
+
+        <section className="wireframe-panel mt-6 p-6 stagger-in" style={{ animationDelay: "550ms" }}>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-2xl font-semibold">Prebuilt Catalog</h3>
+            <span className="label-pill">{prebuilts.length} listed</span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {prebuilts.map((prebuilt) => (
+              <article key={prebuilt.id} className="rounded-lg border border-[color:var(--panel-border)] p-4">
+                <p className="text-lg font-semibold">{prebuilt.name}</p>
+                <p className="mt-1 text-sm text-[color:var(--muted)]">{prebuilt.vendor}</p>
+                <p className="mt-2 text-sm text-[color:var(--muted)]">{prebuilt.description}</p>
+                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">CPU: {prebuilt.cpu_name}</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">GPU: {prebuilt.gpu_name}</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">
+                  RAM: {prebuilt.ram_gb}GB | Storage: {prebuilt.storage_gb}GB
+                </p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">LLM fit: {prebuilt.llm_max_model_size}</p>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="font-semibold">${prebuilt.price_usd}</span>
+                  <span className="label-pill">{prebuilt.in_stock ? "In Stock" : "Out of Stock"}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </section>
     </main>
   );
