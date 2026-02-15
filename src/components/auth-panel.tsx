@@ -20,8 +20,6 @@ export function AuthPanel() {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [requestedRole, setRequestedRole] = useState<"USER" | "DEV">("USER");
-  const [devSignupCode, setDevSignupCode] = useState("");
   const [adminSetupCode, setAdminSetupCode] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,8 +65,6 @@ export function AuthPanel() {
       body: JSON.stringify({
         email,
         password,
-        requestedRole,
-        devSignupCode,
         adminSetupCode,
       }),
     });
@@ -124,7 +120,7 @@ export function AuthPanel() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative z-[200]">
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
@@ -134,7 +130,7 @@ export function AuthPanel() {
       </button>
 
       {open ? (
-        <div className="wireframe-panel absolute right-0 top-9 z-20 w-[min(92vw,360px)] p-4">
+        <div className="wireframe-panel absolute right-0 top-9 z-[1000] w-[min(92vw,360px)] p-4">
           {me?.user ? (
             <div>
               <p className="font-semibold">Signed in</p>
@@ -186,23 +182,6 @@ export function AuthPanel() {
                     type="password"
                     required
                   />
-                  <select
-                    value={requestedRole}
-                    onChange={(event) => setRequestedRole(event.target.value as "USER" | "DEV")}
-                    className="w-full rounded-md border border-[color:var(--panel-border)] px-3 py-2 text-sm"
-                  >
-                    <option value="USER">USER</option>
-                    <option value="DEV">DEV</option>
-                  </select>
-                  {requestedRole === "DEV" ? (
-                    <input
-                      value={devSignupCode}
-                      onChange={(event) => setDevSignupCode(event.target.value)}
-                      placeholder="DEV_SIGNUP_CODE"
-                      className="w-full rounded-md border border-[color:var(--panel-border)] px-3 py-2 text-sm"
-                      type="password"
-                    />
-                  ) : null}
                   <input
                     value={adminSetupCode}
                     onChange={(event) => setAdminSetupCode(event.target.value)}

@@ -7,8 +7,6 @@ export async function POST(request: Request) {
     | {
         email?: string;
         password?: string;
-        requestedRole?: string;
-        devSignupCode?: string;
         adminSetupCode?: string;
       }
     | null;
@@ -20,8 +18,6 @@ export async function POST(request: Request) {
   const result = registerAccount({
     email: body.email,
     password: body.password,
-    requestedRole: body.requestedRole,
-    devSignupCode: body.devSignupCode,
     adminSetupCode: body.adminSetupCode,
   });
 

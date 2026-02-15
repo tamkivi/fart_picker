@@ -271,8 +271,6 @@ export function listPrebuilts(): PrebuiltRecord[] {
 export function registerAccount(input: {
   email: string;
   password: string;
-  requestedRole?: string;
-  devSignupCode?: string;
   adminSetupCode?: string;
 }): { ok: true; user: PublicUser } | { ok: false; message: string } {
   const db = getDb();
@@ -305,18 +303,6 @@ export function registerAccount(input: {
     }
 
     role = "ADMIN";
-  } else {
-    if (input.requestedRole === "ADMIN") {
-      return { ok: false, message: "Admin role cannot be self-assigned." };
-    }
-
-    if (input.requestedRole === "DEV") {
-      const devSignupKey = process.env.DEV_SIGNUP_CODE;
-      if (!devSignupKey || input.devSignupCode !== devSignupKey) {
-        return { ok: false, message: "Valid dev signup code is required for DEV accounts." };
-      }
-      role = "DEV";
-    }
   }
 
   const passwordHash = hashPassword(password);

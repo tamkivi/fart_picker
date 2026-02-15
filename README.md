@@ -97,5 +97,4 @@ Then open `http://localhost:3000`.
 - The only permitted admin email is `gustavpaul@tamkivi.com`
 
 ### Optional environment variables
-- `DEV_SIGNUP_CODE` to allow DEV account creation
 - `ADMIN_SETUP_CODE` required to create the admin account for `gustavpaul@tamkivi.com`
