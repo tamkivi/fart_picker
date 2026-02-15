@@ -11,10 +11,10 @@ function applyTheme(theme: Theme) {
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") {
-      return "light";
+      return "dark";
     }
     const saved = localStorage.getItem("fart_picker_theme");
-    return saved === "dark" ? "dark" : "light";
+    return saved === "light" ? "light" : "dark";
   });
 
   useEffect(() => {
