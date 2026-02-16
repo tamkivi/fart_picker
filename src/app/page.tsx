@@ -54,7 +54,8 @@ export default function Home() {
             <span className="ml-2 text-[color:var(--accent)]">LLM capability mode</span>
           </h1>
           <p className="mt-4 max-w-3xl text-lg text-[color:var(--muted)]">
-            Local SQLite-backed catalog for GPUs, CPUs, and prebuilts. This page renders live data from the database.
+            This is a preorder site. Every order is built, assembled, and fully configured after purchase based on
+            your selected build profile.
           </p>
         </header>
 
