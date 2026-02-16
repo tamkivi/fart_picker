@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type AuthUser = {
   id: number;
@@ -36,7 +37,23 @@ export function AuthPanel() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0 });
+
+  const positionPanel = useCallback(() => {
+    const button = buttonRef.current;
+    if (!button) {
+      return;
+    }
+
+    const rect = button.getBoundingClientRect();
+    const panelWidth = Math.min(360, Math.floor(window.innerWidth * 0.92));
+    const left = Math.max(8, Math.min(window.innerWidth - panelWidth - 8, rect.right - panelWidth));
+    const top = Math.min(window.innerHeight - 12, rect.bottom + 8);
+
+    setPanelPosition({ top, left });
+  }, []);
 
   async function refreshMe() {
     const response = await fetch("/api/auth/me", { cache: "no-store" });
@@ -71,7 +88,9 @@ export function AuthPanel() {
 
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
-      if (target && dropdownRef.current && !dropdownRef.current.contains(target)) {
+      const insideButton = Boolean(target && buttonRef.current?.contains(target));
+      const insidePanel = Boolean(target && panelRef.current?.contains(target));
+      if (!insideButton && !insidePanel) {
         setOpen(false);
       }
     };
@@ -92,6 +111,26 @@ export function AuthPanel() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    positionPanel();
+
+    const handleViewportChange = () => {
+      positionPanel();
+    };
+
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+
+    return () => {
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
+    };
+  }, [open, positionPanel]);
 
   async function handleRegister(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -165,8 +204,9 @@ export function AuthPanel() {
   }
 
   return (
-    <div ref={dropdownRef} className="relative z-[200]">
+    <div className="relative z-[200]">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((current) => !current)}
         className="label-pill cursor-pointer"
@@ -174,8 +214,13 @@ export function AuthPanel() {
         {me?.user ? `Profile (${me.user.role})` : "Profile"}
       </button>
 
-      {open ? (
-        <div className="wireframe-panel absolute right-0 top-9 z-[1000] w-[min(92vw,360px)] p-4">
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              ref={panelRef}
+              className="wireframe-panel fixed z-[2147483647] p-4"
+              style={{ top: panelPosition.top, left: panelPosition.left, width: "min(92vw, 360px)" }}
+            >
           {message ? <p className="mb-3 text-xs text-[color:var(--muted)]">{message}</p> : null}
           {me?.user ? (
             <div>
@@ -280,8 +325,10 @@ export function AuthPanel() {
               )}
             </div>
           )}
-        </div>
-      ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
