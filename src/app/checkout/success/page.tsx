@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { AuthPanel } from "@/components/auth-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-session";
-import { getOrderByCheckoutSessionForUser, getUserFromSessionToken } from "@/lib/catalog-db";
+import { getCheckoutOrderView, getSessionUser } from "@/lib/server/order-service";
 
 export default async function CheckoutSuccessPage({
   searchParams,
@@ -15,10 +15,10 @@ export default async function CheckoutSuccessPage({
 
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
-  const user = await getUserFromSessionToken(token);
+  const user = await getSessionUser(token);
 
   const order = user && sessionId
-    ? await getOrderByCheckoutSessionForUser({ userId: user.id, checkoutSessionId: sessionId })
+    ? await getCheckoutOrderView(user.id, sessionId)
     : null;
 
   return (
@@ -44,8 +44,8 @@ export default async function CheckoutSuccessPage({
         {order ? (
           <div className="mt-5 rounded-lg border border-[color:var(--panel-border)] p-4">
             <p className="font-semibold">Order #{order.id}</p>
-            <p className="mt-2 text-sm text-[color:var(--muted)]">Build: {order.build_name}</p>
-            <p className="text-sm text-[color:var(--muted)]">Amount: €{(order.amount_eur_cents / 100).toFixed(2)}</p>
+            <p className="mt-2 text-sm text-[color:var(--muted)]">Build: {order.buildName}</p>
+            <p className="text-sm text-[color:var(--muted)]">Amount: €{order.amountEur}</p>
             <p className="text-sm text-[color:var(--muted)]">Status: {order.status}</p>
           </div>
         ) : (

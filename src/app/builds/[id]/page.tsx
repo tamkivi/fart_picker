@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
 import { PurchaseBuildButton } from "@/components/purchase-build-button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { getProfileBuildById } from "@/lib/catalog-db";
+import { getBuildDetailView } from "@/lib/server/catalog-service";
 
 export default async function BuildDetailPage({
   params,
@@ -17,7 +17,7 @@ export default async function BuildDetailPage({
     notFound();
   }
 
-  const build = getProfileBuildById(buildId);
+  const build = getBuildDetailView(buildId);
   if (!build) {
     notFound();
   }
@@ -44,31 +44,31 @@ export default async function BuildDetailPage({
             </div>
           </div>
 
-          <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">{build.build_name}</h1>
-          <p className="mt-3 text-lg text-[color:var(--muted)]">{build.best_for}</p>
-          <p className="mt-2 text-sm text-[color:var(--muted)]">Profile: {build.profile_label}</p>
+          <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">{build.buildName}</h1>
+          <p className="mt-3 text-lg text-[color:var(--muted)]">{build.bestFor}</p>
+          <p className="mt-2 text-sm text-[color:var(--muted)]">Profile: {build.profileLabel}</p>
         </header>
 
         <div className="grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6">
             <h2 className="font-display text-3xl font-semibold">Core Configuration</h2>
             <div className="mt-4 space-y-2 font-mono text-xs text-[color:var(--muted)]">
-              <p>CPU: {build.cpu_name}</p>
-              <p>GPU: {build.gpu_name}</p>
-              <p>RAM: {build.ram_gb}GB</p>
-              <p>Storage: {build.storage_gb}GB</p>
-              <p>Model target: {build.target_model}</p>
+              <p>CPU: {build.cpuName}</p>
+              <p>GPU: {build.gpuName}</p>
+              <p>RAM: {build.ramGb}GB</p>
+              <p>Storage: {build.storageGb}GB</p>
+              <p>Model target: {build.targetModel}</p>
             </div>
           </section>
 
           <section className="wireframe-panel p-6">
             <h2 className="font-display text-3xl font-semibold">Performance & Power</h2>
             <div className="mt-4 space-y-2 font-mono text-xs text-[color:var(--muted)]">
-              <p>Estimated throughput: {build.estimated_tokens_per_sec}</p>
-              <p>Estimated system power: ~{build.estimated_system_power_w}W</p>
-              <p>Recommended PSU: {build.recommended_psu_w}W</p>
-              <p>Cooling profile: {build.cooling_profile}</p>
-              <p className="pt-2 text-base font-semibold text-[color:var(--foreground)]">Estimated price: €{build.estimated_price_eur}</p>
+              <p>Estimated throughput: {build.estimatedTokensPerSec}</p>
+              <p>Estimated system power: ~{build.estimatedSystemPowerW}W</p>
+              <p>Recommended PSU: {build.recommendedPsuW}W</p>
+              <p>Cooling profile: {build.coolingProfile}</p>
+              <p className="pt-2 text-base font-semibold text-[color:var(--foreground)]">Estimated price: €{build.estimatedPriceEur}</p>
             </div>
           </section>
         </div>
@@ -76,8 +76,8 @@ export default async function BuildDetailPage({
         <section className="wireframe-panel mt-6 p-6">
           <h2 className="font-display text-3xl font-semibold">Build Notes</h2>
           <p className="mt-3 text-sm text-[color:var(--muted)]">{build.notes}</p>
-          <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Source references: {build.source_refs}</p>
-          <PurchaseBuildButton buildId={build.id} priceEur={build.estimated_price_eur} />
+          <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Source references: {build.sourceRefs}</p>
+          <PurchaseBuildButton buildId={build.id} priceEur={build.estimatedPriceEur} />
           <div className="mt-5">
             <Link href="/" className="label-pill inline-block">
               Back to build profiles

@@ -4,18 +4,18 @@ import { redirect } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-session";
-import { getUserFromSessionToken, listOrdersForUser } from "@/lib/catalog-db";
+import { getSessionUser, getUserOrdersView } from "@/lib/server/order-service";
 
 export default async function OrdersPage() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
-  const user = await getUserFromSessionToken(token);
+  const user = await getSessionUser(token);
 
   if (!user) {
     redirect("/");
   }
 
-  const orders = await listOrdersForUser(user.id);
+  const orders = await getUserOrdersView(user.id);
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
@@ -54,12 +54,12 @@ export default async function OrdersPage() {
                     <p className="font-semibold">Order #{order.id}</p>
                     <span className="label-pill">{order.status}</span>
                   </div>
-                  <p className="mt-2 text-sm text-[color:var(--muted)]">Build: {order.build_name}</p>
-                  <p className="text-sm text-[color:var(--muted)]">Amount: €{(order.amount_eur_cents / 100).toFixed(2)}</p>
-                  <p className="text-xs text-[color:var(--muted)]">Created: {order.created_at}</p>
-                  {order.stripe_checkout_session_id ? (
+                  <p className="mt-2 text-sm text-[color:var(--muted)]">Build: {order.buildName}</p>
+                  <p className="text-sm text-[color:var(--muted)]">Amount: €{order.amountEur}</p>
+                  <p className="text-xs text-[color:var(--muted)]">Created: {order.createdAt}</p>
+                  {order.checkoutSessionId ? (
                     <Link
-                      href={`/checkout/success?session_id=${encodeURIComponent(order.stripe_checkout_session_id)}`}
+                      href={`/checkout/success?session_id=${encodeURIComponent(order.checkoutSessionId)}`}
                       className="mt-3 inline-block rounded-md bg-[color:var(--accent-2)] px-3 py-1 text-xs font-semibold text-white"
                     >
                       View payment details

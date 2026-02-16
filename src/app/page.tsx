@@ -1,4 +1,4 @@
-import { listCpus, listGpus, listPrebuilts, listProfileBuilds } from "@/lib/catalog-db";
+import { getHomeCatalogView } from "@/lib/server/catalog-service";
 import { AuthPanel } from "@/components/auth-panel";
 import { ProfileBuildsBrowser } from "@/components/profile-builds-browser";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -26,10 +26,26 @@ export default function Home() {
     },
   ];
 
-  const gpus = listGpus();
-  const cpus = listCpus();
-  const prebuilts = listPrebuilts();
-  const profileBuilds = listProfileBuilds().map((build) => ({ ...build }));
+  const { gpus, cpus, prebuilts, profileBuilds } = getHomeCatalogView();
+  const browserBuilds = profileBuilds.map((build) => ({
+    id: build.id,
+    profile_key: build.profileKey,
+    build_name: build.buildName,
+    target_model: build.targetModel,
+    ram_gb: build.ramGb,
+    storage_gb: build.storageGb,
+    estimated_price_eur: build.estimatedPriceEur,
+    best_for: build.bestFor,
+    estimated_tokens_per_sec: build.estimatedTokensPerSec,
+    estimated_system_power_w: build.estimatedSystemPowerW,
+    recommended_psu_w: build.recommendedPsuW,
+    cooling_profile: build.coolingProfile,
+    notes: build.notes,
+    source_refs: build.sourceRefs,
+    cpu_name: build.cpuName,
+    gpu_name: build.gpuName,
+    profile_label: build.profileLabel,
+  }));
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
@@ -59,7 +75,7 @@ export default function Home() {
           </p>
         </header>
 
-        <ProfileBuildsBrowser profiles={profileCards} builds={profileBuilds} />
+        <ProfileBuildsBrowser profiles={profileCards} builds={browserBuilds} />
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "350ms" }}>
@@ -72,9 +88,9 @@ export default function Home() {
                 <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
                   <p className="font-semibold">{gpu.name}</p>
                   <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {gpu.brand} | {gpu.vram_gb}GB VRAM | {gpu.architecture} | AI {gpu.ai_score}
+                    {gpu.brand} | {gpu.vramGb}GB VRAM | {gpu.architecture} | AI {gpu.aiScore}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{gpu.price_eur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{gpu.priceEur}</p>
                 </div>
               ))}
             </div>
@@ -90,9 +106,9 @@ export default function Home() {
                 <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
                   <p className="font-semibold">{cpu.name}</p>
                   <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.ai_score}
+                    {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.aiScore}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{cpu.price_eur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{cpu.priceEur}</p>
                 </div>
               ))}
             </div>
@@ -110,15 +126,15 @@ export default function Home() {
                 <p className="font-display text-xl font-semibold">{prebuilt.name}</p>
                 <p className="mt-1 text-sm text-[color:var(--muted)]">{prebuilt.vendor}</p>
                 <p className="mt-2 text-sm text-[color:var(--muted)]">{prebuilt.description}</p>
-                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">CPU: {prebuilt.cpu_name}</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">GPU: {prebuilt.gpu_name}</p>
+                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">CPU: {prebuilt.cpuName}</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">GPU: {prebuilt.gpuName}</p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">
-                  RAM: {prebuilt.ram_gb}GB | Storage: {prebuilt.storage_gb}GB
+                  RAM: {prebuilt.ramGb}GB | Storage: {prebuilt.storageGb}GB
                 </p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">LLM fit: {prebuilt.llm_max_model_size}</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">LLM fit: {prebuilt.llmMaxModelSize}</p>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="font-semibold">€{prebuilt.price_eur}</span>
-                  <span className="label-pill">{prebuilt.in_stock ? "In Stock" : "Out of Stock"}</span>
+                  <span className="font-semibold">€{prebuilt.priceEur}</span>
+                  <span className="label-pill">{prebuilt.inStock ? "In Stock" : "Out of Stock"}</span>
                 </div>
               </article>
             ))}

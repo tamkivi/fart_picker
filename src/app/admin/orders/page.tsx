@@ -4,18 +4,18 @@ import { redirect } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-session";
-import { getUserFromSessionToken, listAllOrdersForAdmin } from "@/lib/catalog-db";
+import { getAdminOrdersView, getSessionUser } from "@/lib/server/order-service";
 
 export default async function AdminOrdersPage() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
-  const user = await getUserFromSessionToken(token);
+  const user = await getSessionUser(token);
 
   if (!user || user.role !== "ADMIN") {
     redirect("/");
   }
 
-  const orders = await listAllOrdersForAdmin();
+  const orders = await getAdminOrdersView();
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
@@ -60,11 +60,11 @@ export default async function AdminOrdersPage() {
                   {orders.map((order) => (
                     <tr key={order.id} className="border-b border-[color:var(--panel-border)]">
                       <td className="px-2 py-2">#{order.id}</td>
-                      <td className="px-2 py-2">{order.user_email}</td>
-                      <td className="px-2 py-2">{order.build_name}</td>
-                      <td className="px-2 py-2">€{(order.amount_eur_cents / 100).toFixed(2)}</td>
+                      <td className="px-2 py-2">{order.userEmail}</td>
+                      <td className="px-2 py-2">{order.buildName}</td>
+                      <td className="px-2 py-2">€{order.amountEur}</td>
                       <td className="px-2 py-2">{order.status}</td>
-                      <td className="px-2 py-2">{order.created_at}</td>
+                      <td className="px-2 py-2">{order.createdAt}</td>
                     </tr>
                   ))}
                 </tbody>
