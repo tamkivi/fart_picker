@@ -1,12 +1,26 @@
 import { getHomeCatalogView } from "@/lib/server/catalog-service";
 import { AuthPanel } from "@/components/auth-panel";
+import { LanguageSwitch } from "@/components/language-switch";
 import { ProfileBuildsBrowser } from "@/components/profile-builds-browser";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getRequestLanguage } from "@/lib/server/lang";
 import Link from "next/link";
 
 export const revalidate = 3600;
 
-export default function Home() {
+export default async function Home() {
+  const lang = await getRequestLanguage();
+  const copy = {
+    preorderDescription:
+      lang === "et"
+        ? "See on ettetellimuse sait. Iga tellimus ehitatakse, komplekteeritakse ja seadistatakse täielikult pärast ostu vastavalt valitud ehitusprofiilile."
+        : "This is a preorder site. Every order is built, assembled, and fully configured after purchase based on your selected build profile.",
+    pricingDescription:
+      lang === "et"
+        ? "Hinnad arvutatakse iga päev ümber Eesti kuulutuste põhjal ning sisaldavad 15% komplekteerimise ja seadistamise marginaali."
+        : "Prices are recalculated daily from Estonian listings and include a 15% assembly/setup margin.",
+  };
+
   const profileCards = [
     {
       key: "local-llm-inference",
@@ -66,13 +80,14 @@ export default function Home() {
       <section className="mx-auto max-w-6xl">
         <header className="stagger-in mb-8">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link href="/about" className="label-pill inline-block">
                 About
               </Link>
               <Link href="/faq" className="label-pill inline-block">
                 FAQ
               </Link>
+              <LanguageSwitch lang={lang} />
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -84,11 +99,10 @@ export default function Home() {
             <span className="ml-2 text-[color:var(--accent)]">LLM capability mode</span>
           </h1>
           <p className="mt-4 max-w-3xl text-lg text-[color:var(--muted)]">
-            This is a preorder site. Every order is built, assembled, and fully configured after purchase based on
-            your selected build profile.
+            {copy.preorderDescription}
           </p>
           <p className="mt-2 max-w-3xl text-sm text-[color:var(--muted)]">
-            Prices are recalculated daily from Estonian listings and include a 15% assembly/setup margin.
+            {copy.pricingDescription}
           </p>
         </header>
 

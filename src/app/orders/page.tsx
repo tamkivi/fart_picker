@@ -2,11 +2,14 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
+import { LanguageSwitch } from "@/components/language-switch";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-session";
+import { getRequestLanguage } from "@/lib/server/lang";
 import { getSessionUser, getUserOrdersView } from "@/lib/server/order-service";
 
 export default async function OrdersPage() {
+  const lang = await getRequestLanguage();
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
   const user = await getSessionUser(token);
@@ -22,7 +25,7 @@ export default async function OrdersPage() {
       <section className="mx-auto max-w-6xl">
         <header className="mb-8">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link href="/" className="label-pill inline-block">
                 Home
               </Link>
@@ -32,6 +35,7 @@ export default async function OrdersPage() {
               <Link href="/faq" className="label-pill inline-block">
                 FAQ
               </Link>
+              <LanguageSwitch lang={lang} />
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />

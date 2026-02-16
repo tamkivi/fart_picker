@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
+import { LanguageSwitch } from "@/components/language-switch";
 import { PurchaseBuildButton } from "@/components/purchase-build-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getBuildDetailView } from "@/lib/server/catalog-service";
+import { getRequestLanguage } from "@/lib/server/lang";
 
 export default async function BuildDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const lang = await getRequestLanguage();
   const resolvedParams = await params;
   const buildId = Number.parseInt(resolvedParams.id, 10);
 
@@ -27,7 +30,7 @@ export default async function BuildDetailPage({
       <section className="mx-auto max-w-6xl">
         <header className="mb-8">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link href="/" className="label-pill inline-block">
                 Home
               </Link>
@@ -37,6 +40,7 @@ export default async function BuildDetailPage({
               <Link href="/faq" className="label-pill inline-block">
                 FAQ
               </Link>
+              <LanguageSwitch lang={lang} />
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
