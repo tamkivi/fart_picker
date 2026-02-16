@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type Profile = {
@@ -97,11 +98,10 @@ export function ProfileBuildsBrowser({
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {activeBuilds.map((build) => (
-              <button
+              <article
                 key={build.id}
-                type="button"
-                onClick={() => setSelectedBuildId(build.id)}
                 className={`rounded-lg border p-4 text-left transition ${selectedBuild?.id === build.id ? "border-[color:var(--accent)] ring-1 ring-[color:var(--accent)]" : "border-[color:var(--panel-border)] hover:-translate-y-0.5"}`}
+                onClick={() => setSelectedBuildId(build.id)}
               >
                 <p className="font-display text-xl font-semibold">{build.build_name}</p>
                 <p className="mt-2 text-sm text-[color:var(--muted)]">{build.notes}</p>
@@ -112,44 +112,22 @@ export function ProfileBuildsBrowser({
                 </p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">Model target: {build.target_model}</p>
                 <p className="mt-3 text-base font-semibold">Est. €{build.estimated_price_eur}</p>
-                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
-                  {selectedBuild?.id === build.id ? "Selected build" : "Click for full details"}
-                </p>
-              </button>
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
+                    {selectedBuild?.id === build.id ? "Selected build" : "Click to select"}
+                  </p>
+                  <Link
+                    href={`/builds/${build.id}`}
+                    className="rounded-md bg-[color:var(--accent-2)] px-3 py-1 text-xs font-semibold text-white"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    View More Details
+                  </Link>
+                </div>
+              </article>
             ))}
           </div>
         )}
-
-        {selectedBuild ? (
-          <section className="mt-6 rounded-lg border border-[color:var(--panel-border)] p-5">
-            <h4 className="font-display text-2xl font-semibold">{selectedBuild.build_name}</h4>
-            <p className="mt-2 text-sm text-[color:var(--muted)]">{selectedBuild.best_for}</p>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <p className="font-mono text-xs text-[color:var(--muted)]">CPU: {selectedBuild.cpu_name}</p>
-              <p className="font-mono text-xs text-[color:var(--muted)]">GPU: {selectedBuild.gpu_name}</p>
-              <p className="font-mono text-xs text-[color:var(--muted)]">
-                RAM: {selectedBuild.ram_gb}GB | Storage: {selectedBuild.storage_gb}GB
-              </p>
-              <p className="font-mono text-xs text-[color:var(--muted)]">
-                Model target: {selectedBuild.target_model}
-              </p>
-              <p className="font-mono text-xs text-[color:var(--muted)]">
-                Est. throughput: {selectedBuild.estimated_tokens_per_sec}
-              </p>
-              <p className="font-mono text-xs text-[color:var(--muted)]">
-                System draw: ~{selectedBuild.estimated_system_power_w}W
-              </p>
-              <p className="font-mono text-xs text-[color:var(--muted)]">
-                Recommended PSU: {selectedBuild.recommended_psu_w}W
-              </p>
-              <p className="font-mono text-xs text-[color:var(--muted)]">
-                Cooling profile: {selectedBuild.cooling_profile}
-              </p>
-            </div>
-            <p className="mt-4 text-sm text-[color:var(--muted)]">{selectedBuild.notes}</p>
-            <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Source: {selectedBuild.source_refs}</p>
-          </section>
-        ) : null}
       </section>
     </section>
   );

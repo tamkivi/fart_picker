@@ -1332,6 +1332,41 @@ export function listProfileBuilds(): ProfileBuildRecord[] {
     .all() as ProfileBuildRecord[];
 }
 
+export function getProfileBuildById(id: number): ProfileBuildRecord | null {
+  const db = getDb();
+  const row = db
+    .prepare(
+      `
+      SELECT
+        pb.id,
+        pb.profile_key,
+        pb.profile_label,
+        pb.build_name,
+        pb.target_model,
+        pb.ram_gb,
+        pb.storage_gb,
+        pb.estimated_price_eur,
+        pb.best_for,
+        pb.estimated_tokens_per_sec,
+        pb.estimated_system_power_w,
+        pb.recommended_psu_w,
+        pb.cooling_profile,
+        pb.notes,
+        pb.source_refs,
+        c.name AS cpu_name,
+        g.name AS gpu_name
+      FROM profile_builds pb
+      JOIN cpus c ON c.id = pb.cpu_id
+      JOIN gpus g ON g.id = pb.gpu_id
+      WHERE pb.id = ?
+      LIMIT 1
+    `,
+    )
+    .get(id);
+
+  return (row as ProfileBuildRecord | undefined) ?? null;
+}
+
 export function registerAccount(input: {
   email: string;
   password: string;
