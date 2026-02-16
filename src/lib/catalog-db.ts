@@ -1299,8 +1299,12 @@ export function createSessionForCredentials(input: {
   const db = getDb();
   const user = getUserByEmail(input.email);
 
-  if (!user || !verifyPassword(input.password, user.password_hash)) {
-    return { ok: false, message: "Invalid email or password." };
+  if (!user) {
+    return { ok: false, message: "No account found for this email. Please sign up first." };
+  }
+
+  if (!verifyPassword(input.password, user.password_hash)) {
+    return { ok: false, message: "Incorrect password." };
   }
 
   const token = createSessionToken();
