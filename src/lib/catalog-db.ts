@@ -98,6 +98,8 @@ export type OrderRecord = {
   updated_at: string;
 };
 
+type OrderRow = OrderRecord;
+
 const globalForCatalogDb = globalThis as unknown as {
   catalogDb: DatabaseSync | undefined;
 };
@@ -1272,6 +1274,13 @@ function initDatabase(): DatabaseSync {
     CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
     CREATE INDEX IF NOT EXISTS idx_orders_profile_build_id ON orders(profile_build_id);
     CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+
+    CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id TEXT NOT NULL UNIQUE,
+      event_type TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   ensureEuroPriceColumns(db);
@@ -1553,6 +1562,9 @@ export function createPendingOrderForBuild(input: {
   }
 
   const amountEurCents = Math.max(0, Math.trunc(build.estimated_price_eur * 100));
+  if (amountEurCents <= 0) {
+    return { ok: false, message: "Build price is invalid." };
+  }
   const inserted = db
     .prepare(
       "INSERT INTO orders (user_id, profile_build_id, build_name, amount_eur_cents, currency, status) VALUES (?, ?, ?, ?, 'eur', 'PENDING')",
@@ -1652,7 +1664,87 @@ export function getOrderByCheckoutSessionForUser(input: {
     )
     .get(input.userId, input.checkoutSessionId);
 
-  return (row as OrderRecord | undefined) ?? null;
+  return (row as OrderRow | undefined) ?? null;
+}
+
+export function getOrderById(id: number): OrderRecord | null {
+  const db = getDb();
+  const row = db
+    .prepare(
+      `
+      SELECT
+        id,
+        user_id,
+        profile_build_id,
+        build_name,
+        amount_eur_cents,
+        currency,
+        status,
+        stripe_checkout_session_id,
+        stripe_payment_intent_id,
+        created_at,
+        updated_at
+      FROM orders
+      WHERE id = ?
+      LIMIT 1
+    `,
+    )
+    .get(id);
+
+  return (row as OrderRow | undefined) ?? null;
+}
+
+export function getRecentOpenOrderForBuild(input: {
+  userId: number;
+  buildId: number;
+}): (Pick<OrderRecord, "id" | "build_name" | "amount_eur_cents" | "stripe_checkout_session_id"> & {
+  status: OrderStatus;
+}) | null {
+  const db = getDb();
+  const row = db
+    .prepare(
+      `
+      SELECT id, build_name, amount_eur_cents, stripe_checkout_session_id, status
+      FROM orders
+      WHERE user_id = ?
+        AND profile_build_id = ?
+        AND status IN ('PENDING', 'CHECKOUT_CREATED')
+        AND datetime(created_at) > datetime('now', '-30 minutes')
+      ORDER BY id DESC
+      LIMIT 1
+    `,
+    )
+    .get(input.userId, input.buildId);
+
+  return (
+    (row as
+      | (Pick<OrderRecord, "id" | "build_name" | "amount_eur_cents" | "stripe_checkout_session_id"> & {
+          status: OrderStatus;
+        })
+      | undefined) ?? null
+  );
+}
+
+export function recordStripeWebhookEvent(eventId: string, eventType: string): boolean {
+  const db = getDb();
+  try {
+    db.prepare("INSERT INTO stripe_webhook_events (event_id, event_type) VALUES (?, ?)").run(eventId, eventType);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function markOrderCheckoutCreationFailed(orderId: number): void {
+  const db = getDb();
+  db.prepare(
+    `
+      UPDATE orders
+      SET status = 'FAILED',
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `,
+  ).run(orderId);
 }
 
 export function getAdminEmail(): string {

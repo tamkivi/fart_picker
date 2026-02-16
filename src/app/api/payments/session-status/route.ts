@@ -1,7 +1,16 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-session";
-import { getOrderByCheckoutSessionForUser, getUserFromSessionToken } from "@/lib/catalog-db";
+import {
+  getOrderByCheckoutSessionForUser,
+  getUserFromSessionToken,
+  markOrderCanceledFromCheckoutSession,
+  markOrderFailedFromCheckoutSession,
+  markOrderPaidFromCheckoutSession,
+} from "@/lib/catalog-db";
+import { getStripe } from "@/lib/stripe";
+
+export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const store = await cookies();
@@ -27,13 +36,44 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "Order not found." }, { status: 404 });
   }
 
+  let session;
+  try {
+    const stripe = getStripe();
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch {
+    return NextResponse.json({ message: "Unable to verify payment session." }, { status: 502 });
+  }
+  const metadataUserId = Number.parseInt(session.metadata?.user_id ?? "", 10);
+  if (!Number.isFinite(metadataUserId) || metadataUserId !== user.id) {
+    return NextResponse.json({ message: "Session ownership mismatch." }, { status: 403 });
+  }
+
+  if (session.payment_status === "paid") {
+    markOrderPaidFromCheckoutSession({
+      checkoutSessionId: session.id,
+      paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
+    });
+  } else if (session.status === "expired") {
+    markOrderCanceledFromCheckoutSession(session.id);
+  } else if (session.payment_status === "unpaid" && session.status === "complete") {
+    markOrderFailedFromCheckoutSession({
+      checkoutSessionId: session.id,
+      paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
+    });
+  }
+
+  const refreshed = getOrderByCheckoutSessionForUser({
+    userId: user.id,
+    checkoutSessionId: sessionId,
+  });
+
   return NextResponse.json({
     order: {
-      id: order.id,
-      buildName: order.build_name,
-      amountEur: (order.amount_eur_cents / 100).toFixed(2),
-      status: order.status,
-      createdAt: order.created_at,
+      id: (refreshed ?? order).id,
+      buildName: (refreshed ?? order).build_name,
+      amountEur: ((refreshed ?? order).amount_eur_cents / 100).toFixed(2),
+      status: (refreshed ?? order).status,
+      createdAt: (refreshed ?? order).created_at,
     },
   });
 }
