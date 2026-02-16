@@ -26,7 +26,8 @@ export default function Home() {
     },
   ];
 
-  const { gpus, cpus, prebuilts, profileBuilds } = getHomeCatalogView();
+  const { gpus, cpus, prebuilts, ramKits, powerSupplies, cases, motherboards, compactAiSystems, profileBuilds } =
+    getHomeCatalogView();
   const browserBuilds = profileBuilds.map((build) => ({
     id: build.id,
     profile_key: build.profileKey,
@@ -135,6 +136,116 @@ export default function Home() {
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-semibold">€{prebuilt.priceEur}</span>
                   <span className="label-pill">{prebuilt.inStock ? "In Stock" : "Out of Stock"}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "620ms" }}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-3xl font-semibold">RAM Kits</h3>
+              <span className="label-pill">{ramKits.length} listed</span>
+            </div>
+            <div className="space-y-3">
+              {ramKits.map((ramKit) => (
+                <div key={ramKit.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <p className="font-semibold">{ramKit.name}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    {ramKit.modules} | {ramKit.ddrGen} {ramKit.speedMtS} | {ramKit.casLatency}
+                  </p>
+                  <p className="font-mono text-xs text-[color:var(--muted)]">Profiles: {ramKit.profileSupport}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{ramKit.priceEur}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "690ms" }}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-3xl font-semibold">Motherboards</h3>
+              <span className="label-pill">{motherboards.length} listed</span>
+            </div>
+            <div className="space-y-3">
+              {motherboards.map((motherboard) => (
+                <div key={motherboard.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <p className="font-semibold">{motherboard.name}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    {motherboard.socket} | {motherboard.chipset} | {motherboard.memorySupport}
+                  </p>
+                  <p className="font-mono text-xs text-[color:var(--muted)]">
+                    Max memory: {motherboard.maxMemoryGb}GB | PCIe Gen5: {motherboard.pcieGen5Support ? "Yes" : "No"}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{motherboard.priceEur}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "760ms" }}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-3xl font-semibold">Power Supplies</h3>
+              <span className="label-pill">{powerSupplies.length} listed</span>
+            </div>
+            <div className="space-y-3">
+              {powerSupplies.map((psu) => (
+                <div key={psu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <p className="font-semibold">{psu.name}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    {psu.wattage}W | {psu.efficiencyRating} | {psu.atxStandard}
+                  </p>
+                  <p className="font-mono text-xs text-[color:var(--muted)]">
+                    {psu.modularity} | 12V-2x6/PCIe5: {psu.pcie5Support ? "Supported" : "No"}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{psu.priceEur}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "830ms" }}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-3xl font-semibold">Cases</h3>
+              <span className="label-pill">{cases.length} listed</span>
+            </div>
+            <div className="space-y-3">
+              {cases.map((pcCase) => (
+                <div key={pcCase.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <p className="font-semibold">{pcCase.name}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    {pcCase.formFactor} | Max GPU: {pcCase.maxGpuMm}mm
+                  </p>
+                  <p className="font-mono text-xs text-[color:var(--muted)]">
+                    Radiator: {pcCase.radiatorSupport} | Fans: {pcCase.includedFans}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{pcCase.priceEur}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <section className="wireframe-panel mt-6 p-6 stagger-in" style={{ animationDelay: "900ms" }}>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-display text-3xl font-semibold">Compact AI Systems (Mac mini)</h3>
+            <span className="label-pill">{compactAiSystems.length} listed</span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {compactAiSystems.map((system) => (
+              <article key={system.id} className="rounded-lg border border-[color:var(--panel-border)] p-4">
+                <p className="font-display text-xl font-semibold">{system.name}</p>
+                <p className="mt-1 text-sm text-[color:var(--muted)]">{system.vendor}</p>
+                <p className="mt-2 text-sm text-[color:var(--muted)]">{system.bestFor}</p>
+                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Chip: {system.chip}</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">Memory: {system.memoryGb}GB unified</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">Storage: {system.storageGb}GB SSD</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">Software: {system.installedSoftware}</p>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="font-semibold">€{system.priceEur}</span>
+                  <span className="label-pill">{system.inStock ? "In Stock" : "Out of Stock"}</span>
                 </div>
               </article>
             ))}

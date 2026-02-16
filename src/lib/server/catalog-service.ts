@@ -1,5 +1,16 @@
 import "server-only";
-import { getProfileBuildById, listCpus, listGpus, listPrebuilts, listProfileBuilds } from "@/lib/catalog-db";
+import {
+  getProfileBuildById,
+  listCases,
+  listCompactAiSystems,
+  listCpus,
+  listGpus,
+  listMotherboards,
+  listPowerSupplies,
+  listPrebuilts,
+  listProfileBuilds,
+  listRamKits,
+} from "@/lib/catalog-db";
 
 export type PublicGpu = {
   id: number;
@@ -33,6 +44,68 @@ export type PublicPrebuilt = {
   inStock: boolean;
   cpuName: string;
   gpuName: string;
+  priceEur: number;
+};
+
+export type PublicRamKit = {
+  id: number;
+  name: string;
+  brand: string;
+  capacityGb: number;
+  modules: string;
+  ddrGen: string;
+  speedMtS: number;
+  casLatency: string;
+  profileSupport: string;
+  priceEur: number;
+};
+
+export type PublicPowerSupply = {
+  id: number;
+  name: string;
+  brand: string;
+  wattage: number;
+  efficiencyRating: string;
+  atxStandard: string;
+  modularity: string;
+  pcie5Support: boolean;
+  priceEur: number;
+};
+
+export type PublicCase = {
+  id: number;
+  name: string;
+  brand: string;
+  formFactor: string;
+  maxGpuMm: number;
+  radiatorSupport: string;
+  includedFans: string;
+  priceEur: number;
+};
+
+export type PublicMotherboard = {
+  id: number;
+  name: string;
+  brand: string;
+  socket: string;
+  chipset: string;
+  memorySupport: string;
+  maxMemoryGb: number;
+  pcieGen5Support: boolean;
+  priceEur: number;
+};
+
+export type PublicCompactAiSystem = {
+  id: number;
+  name: string;
+  vendor: string;
+  chip: string;
+  memoryGb: number;
+  storageGb: number;
+  gpuClass: string;
+  installedSoftware: string;
+  bestFor: string;
+  inStock: boolean;
   priceEur: number;
 };
 
@@ -112,7 +185,69 @@ export function getHomeCatalogView() {
     gpuName: build.gpu_name,
   }));
 
-  return { gpus, cpus, prebuilts, profileBuilds };
+  const ramKits: PublicRamKit[] = listRamKits().map((ramKit) => ({
+    id: ramKit.id,
+    name: ramKit.name,
+    brand: ramKit.brand,
+    capacityGb: ramKit.capacity_gb,
+    modules: ramKit.modules,
+    ddrGen: ramKit.ddr_gen,
+    speedMtS: ramKit.speed_mt_s,
+    casLatency: ramKit.cas_latency,
+    profileSupport: ramKit.profile_support,
+    priceEur: ramKit.price_eur,
+  }));
+
+  const powerSupplies: PublicPowerSupply[] = listPowerSupplies().map((psu) => ({
+    id: psu.id,
+    name: psu.name,
+    brand: psu.brand,
+    wattage: psu.wattage,
+    efficiencyRating: psu.efficiency_rating,
+    atxStandard: psu.atx_standard,
+    modularity: psu.modularity,
+    pcie5Support: psu.pcie_5_support === 1,
+    priceEur: psu.price_eur,
+  }));
+
+  const cases: PublicCase[] = listCases().map((pcCase) => ({
+    id: pcCase.id,
+    name: pcCase.name,
+    brand: pcCase.brand,
+    formFactor: pcCase.form_factor,
+    maxGpuMm: pcCase.max_gpu_mm,
+    radiatorSupport: pcCase.radiator_support,
+    includedFans: pcCase.included_fans,
+    priceEur: pcCase.price_eur,
+  }));
+
+  const motherboards: PublicMotherboard[] = listMotherboards().map((motherboard) => ({
+    id: motherboard.id,
+    name: motherboard.name,
+    brand: motherboard.brand,
+    socket: motherboard.socket,
+    chipset: motherboard.chipset,
+    memorySupport: motherboard.memory_support,
+    maxMemoryGb: motherboard.max_memory_gb,
+    pcieGen5Support: motherboard.pcie_gen5_support === 1,
+    priceEur: motherboard.price_eur,
+  }));
+
+  const compactAiSystems: PublicCompactAiSystem[] = listCompactAiSystems().map((system) => ({
+    id: system.id,
+    name: system.name,
+    vendor: system.vendor,
+    chip: system.chip,
+    memoryGb: system.memory_gb,
+    storageGb: system.storage_gb,
+    gpuClass: system.gpu_class,
+    installedSoftware: system.installed_software,
+    bestFor: system.best_for,
+    inStock: system.in_stock === 1,
+    priceEur: system.price_eur,
+  }));
+
+  return { gpus, cpus, prebuilts, ramKits, powerSupplies, cases, motherboards, compactAiSystems, profileBuilds };
 }
 
 export function getBuildDetailView(buildId: number): PublicProfileBuild | null {

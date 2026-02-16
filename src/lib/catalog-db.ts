@@ -42,6 +42,73 @@ export type PrebuiltRecord = {
   gpu_name: string;
 };
 
+export type RamKitRecord = {
+  id: number;
+  name: string;
+  brand: string;
+  capacity_gb: number;
+  modules: string;
+  ddr_gen: string;
+  speed_mt_s: number;
+  cas_latency: string;
+  profile_support: string;
+  price_eur: number;
+  source_refs: string;
+};
+
+export type PowerSupplyRecord = {
+  id: number;
+  name: string;
+  brand: string;
+  wattage: number;
+  efficiency_rating: string;
+  atx_standard: string;
+  modularity: string;
+  pcie_5_support: number;
+  price_eur: number;
+  source_refs: string;
+};
+
+export type CaseRecord = {
+  id: number;
+  name: string;
+  brand: string;
+  form_factor: string;
+  max_gpu_mm: number;
+  radiator_support: string;
+  included_fans: string;
+  price_eur: number;
+  source_refs: string;
+};
+
+export type MotherboardRecord = {
+  id: number;
+  name: string;
+  brand: string;
+  socket: string;
+  chipset: string;
+  memory_support: string;
+  max_memory_gb: number;
+  pcie_gen5_support: number;
+  price_eur: number;
+  source_refs: string;
+};
+
+export type CompactAiSystemRecord = {
+  id: number;
+  name: string;
+  vendor: string;
+  chip: string;
+  memory_gb: number;
+  storage_gb: number;
+  gpu_class: string;
+  installed_software: string;
+  best_for: string;
+  price_eur: number;
+  in_stock: number;
+  source_refs: string;
+};
+
 export type ProfileBuildRecord = {
   id: number;
   profile_key: string;
@@ -580,6 +647,222 @@ function ensurePrebuilt(
   }
 }
 
+function ensureRamKit(
+  db: DatabaseSync,
+  ramKit: {
+    name: string;
+    brand: string;
+    capacityGb: number;
+    modules: string;
+    ddrGen: string;
+    speedMtS: number;
+    casLatency: string;
+    profileSupport: string;
+    priceEur: number;
+    sourceRefs: string;
+  },
+): void {
+  db.prepare(
+    `
+    INSERT INTO ram_kits
+      (name, brand, capacity_gb, modules, ddr_gen, speed_mt_s, cas_latency, profile_support, price_eur, source_refs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      brand = excluded.brand,
+      capacity_gb = excluded.capacity_gb,
+      modules = excluded.modules,
+      ddr_gen = excluded.ddr_gen,
+      speed_mt_s = excluded.speed_mt_s,
+      cas_latency = excluded.cas_latency,
+      profile_support = excluded.profile_support,
+      price_eur = excluded.price_eur,
+      source_refs = excluded.source_refs
+  `,
+  ).run(
+    ramKit.name,
+    ramKit.brand,
+    ramKit.capacityGb,
+    ramKit.modules,
+    ramKit.ddrGen,
+    ramKit.speedMtS,
+    ramKit.casLatency,
+    ramKit.profileSupport,
+    ramKit.priceEur,
+    ramKit.sourceRefs,
+  );
+}
+
+function ensurePowerSupply(
+  db: DatabaseSync,
+  psu: {
+    name: string;
+    brand: string;
+    wattage: number;
+    efficiencyRating: string;
+    atxStandard: string;
+    modularity: string;
+    pcie5Support: number;
+    priceEur: number;
+    sourceRefs: string;
+  },
+): void {
+  db.prepare(
+    `
+    INSERT INTO power_supplies
+      (name, brand, wattage, efficiency_rating, atx_standard, modularity, pcie_5_support, price_eur, source_refs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      brand = excluded.brand,
+      wattage = excluded.wattage,
+      efficiency_rating = excluded.efficiency_rating,
+      atx_standard = excluded.atx_standard,
+      modularity = excluded.modularity,
+      pcie_5_support = excluded.pcie_5_support,
+      price_eur = excluded.price_eur,
+      source_refs = excluded.source_refs
+  `,
+  ).run(
+    psu.name,
+    psu.brand,
+    psu.wattage,
+    psu.efficiencyRating,
+    psu.atxStandard,
+    psu.modularity,
+    psu.pcie5Support,
+    psu.priceEur,
+    psu.sourceRefs,
+  );
+}
+
+function ensureCase(
+  db: DatabaseSync,
+  pcCase: {
+    name: string;
+    brand: string;
+    formFactor: string;
+    maxGpuMm: number;
+    radiatorSupport: string;
+    includedFans: string;
+    priceEur: number;
+    sourceRefs: string;
+  },
+): void {
+  db.prepare(
+    `
+    INSERT INTO pc_cases
+      (name, brand, form_factor, max_gpu_mm, radiator_support, included_fans, price_eur, source_refs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      brand = excluded.brand,
+      form_factor = excluded.form_factor,
+      max_gpu_mm = excluded.max_gpu_mm,
+      radiator_support = excluded.radiator_support,
+      included_fans = excluded.included_fans,
+      price_eur = excluded.price_eur,
+      source_refs = excluded.source_refs
+  `,
+  ).run(
+    pcCase.name,
+    pcCase.brand,
+    pcCase.formFactor,
+    pcCase.maxGpuMm,
+    pcCase.radiatorSupport,
+    pcCase.includedFans,
+    pcCase.priceEur,
+    pcCase.sourceRefs,
+  );
+}
+
+function ensureMotherboard(
+  db: DatabaseSync,
+  motherboard: {
+    name: string;
+    brand: string;
+    socket: string;
+    chipset: string;
+    memorySupport: string;
+    maxMemoryGb: number;
+    pcieGen5Support: number;
+    priceEur: number;
+    sourceRefs: string;
+  },
+): void {
+  db.prepare(
+    `
+    INSERT INTO motherboards
+      (name, brand, socket, chipset, memory_support, max_memory_gb, pcie_gen5_support, price_eur, source_refs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      brand = excluded.brand,
+      socket = excluded.socket,
+      chipset = excluded.chipset,
+      memory_support = excluded.memory_support,
+      max_memory_gb = excluded.max_memory_gb,
+      pcie_gen5_support = excluded.pcie_gen5_support,
+      price_eur = excluded.price_eur,
+      source_refs = excluded.source_refs
+  `,
+  ).run(
+    motherboard.name,
+    motherboard.brand,
+    motherboard.socket,
+    motherboard.chipset,
+    motherboard.memorySupport,
+    motherboard.maxMemoryGb,
+    motherboard.pcieGen5Support,
+    motherboard.priceEur,
+    motherboard.sourceRefs,
+  );
+}
+
+function ensureCompactAiSystem(
+  db: DatabaseSync,
+  compactSystem: {
+    name: string;
+    vendor: string;
+    chip: string;
+    memoryGb: number;
+    storageGb: number;
+    gpuClass: string;
+    installedSoftware: string;
+    bestFor: string;
+    priceEur: number;
+    inStock: number;
+    sourceRefs: string;
+  },
+): void {
+  db.prepare(
+    `
+    INSERT INTO compact_ai_systems
+      (name, vendor, chip, memory_gb, storage_gb, gpu_class, installed_software, best_for, price_eur, in_stock, source_refs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      vendor = excluded.vendor,
+      chip = excluded.chip,
+      memory_gb = excluded.memory_gb,
+      storage_gb = excluded.storage_gb,
+      gpu_class = excluded.gpu_class,
+      installed_software = excluded.installed_software,
+      best_for = excluded.best_for,
+      price_eur = excluded.price_eur,
+      in_stock = excluded.in_stock,
+      source_refs = excluded.source_refs
+  `,
+  ).run(
+    compactSystem.name,
+    compactSystem.vendor,
+    compactSystem.chip,
+    compactSystem.memoryGb,
+    compactSystem.storageGb,
+    compactSystem.gpuClass,
+    compactSystem.installedSoftware,
+    compactSystem.bestFor,
+    compactSystem.priceEur,
+    compactSystem.inStock,
+    compactSystem.sourceRefs,
+  );
+}
+
 function seedCatalog(db: DatabaseSync): void {
   const gpuSeed = [
     {
@@ -698,6 +981,42 @@ function seedCatalog(db: DatabaseSync): void {
       tdpWatts: 350,
       aiScore: 83,
       priceEur: 1149,
+    },
+    {
+      name: "NVIDIA RTX 6000 Ada",
+      brand: "NVIDIA",
+      vramGb: 48,
+      architecture: "Ada Lovelace",
+      tdpWatts: 300,
+      aiScore: 97,
+      priceEur: 6499,
+    },
+    {
+      name: "NVIDIA RTX A5000",
+      brand: "NVIDIA",
+      vramGb: 24,
+      architecture: "Ampere",
+      tdpWatts: 230,
+      aiScore: 80,
+      priceEur: 2199,
+    },
+    {
+      name: "AMD Radeon PRO W7900",
+      brand: "AMD",
+      vramGb: 48,
+      architecture: "RDNA 3",
+      tdpWatts: 295,
+      aiScore: 89,
+      priceEur: 3799,
+    },
+    {
+      name: "Intel Arc A770 16GB",
+      brand: "Intel",
+      vramGb: 16,
+      architecture: "Alchemist",
+      tdpWatts: 225,
+      aiScore: 61,
+      priceEur: 319,
     },
   ];
 
@@ -834,6 +1153,312 @@ function seedCatalog(db: DatabaseSync): void {
       aiScore: 89,
       priceEur: 499,
     },
+    {
+      name: "AMD Ryzen 9 9950X",
+      brand: "AMD",
+      cores: 16,
+      threads: 32,
+      baseClockGhz: 4.3,
+      boostClockGhz: 5.7,
+      socket: "AM5",
+      tdpWatts: 170,
+      aiScore: 97,
+      priceEur: 739,
+    },
+    {
+      name: "AMD Ryzen 9 9900X",
+      brand: "AMD",
+      cores: 12,
+      threads: 24,
+      baseClockGhz: 4.4,
+      boostClockGhz: 5.6,
+      socket: "AM5",
+      tdpWatts: 120,
+      aiScore: 91,
+      priceEur: 539,
+    },
+    {
+      name: "AMD Ryzen 7 9700X",
+      brand: "AMD",
+      cores: 8,
+      threads: 16,
+      baseClockGhz: 3.8,
+      boostClockGhz: 5.5,
+      socket: "AM5",
+      tdpWatts: 65,
+      aiScore: 84,
+      priceEur: 369,
+    },
+    {
+      name: "AMD Ryzen 5 9600X",
+      brand: "AMD",
+      cores: 6,
+      threads: 12,
+      baseClockGhz: 3.9,
+      boostClockGhz: 5.4,
+      socket: "AM5",
+      tdpWatts: 65,
+      aiScore: 75,
+      priceEur: 289,
+    },
+    {
+      name: "Intel Core Ultra 9 285K",
+      brand: "Intel",
+      cores: 24,
+      threads: 24,
+      baseClockGhz: 3.7,
+      boostClockGhz: 5.7,
+      socket: "LGA1851",
+      tdpWatts: 125,
+      aiScore: 95,
+      priceEur: 679,
+    },
+    {
+      name: "Intel Core Ultra 7 265K",
+      brand: "Intel",
+      cores: 20,
+      threads: 20,
+      baseClockGhz: 3.9,
+      boostClockGhz: 5.5,
+      socket: "LGA1851",
+      tdpWatts: 125,
+      aiScore: 88,
+      priceEur: 479,
+    },
+  ];
+
+  const ramKitSeed = [
+    {
+      name: "Corsair Vengeance DDR5 64GB 6000 CL30",
+      brand: "Corsair",
+      capacityGb: 64,
+      modules: "2x32GB",
+      ddrGen: "DDR5",
+      speedMtS: 6000,
+      casLatency: "CL30",
+      profileSupport: "XMP + EXPO",
+      priceEur: 239,
+      sourceRefs: "https://www.corsair.com/us/en/p/memory/cmk64gx5m2b6000z30/vengeance-ddr5-memory-64gb-2x32gb-ddr5-6000mts-cl30-amd-expo-cmk64gx5m2b6000z30",
+    },
+    {
+      name: "G.Skill Trident Z5 Neo RGB 64GB 6000 CL30",
+      brand: "G.Skill",
+      capacityGb: 64,
+      modules: "2x32GB",
+      ddrGen: "DDR5",
+      speedMtS: 6000,
+      casLatency: "CL30",
+      profileSupport: "EXPO",
+      priceEur: 259,
+      sourceRefs: "https://www.gskill.com/product/165/390/1692584545/F5-6000J3040G32GX2-TZ5NR",
+    },
+    {
+      name: "Kingston Fury Beast DDR5 96GB 6000 CL36",
+      brand: "Kingston",
+      capacityGb: 96,
+      modules: "2x48GB",
+      ddrGen: "DDR5",
+      speedMtS: 6000,
+      casLatency: "CL36",
+      profileSupport: "XMP + EXPO",
+      priceEur: 379,
+      sourceRefs: "https://www.kingston.com/en/memory/gaming/kingston-fury-beast-ddr5-memory",
+    },
+    {
+      name: "Crucial Pro DDR5 96GB 5600",
+      brand: "Crucial",
+      capacityGb: 96,
+      modules: "2x48GB",
+      ddrGen: "DDR5",
+      speedMtS: 5600,
+      casLatency: "CL46",
+      profileSupport: "XMP",
+      priceEur: 289,
+      sourceRefs: "https://www.crucial.com/memory/ddr5/cp2k48g56c46u5",
+    },
+    {
+      name: "Corsair Vengeance DDR5 128GB 5600",
+      brand: "Corsair",
+      capacityGb: 128,
+      modules: "4x32GB",
+      ddrGen: "DDR5",
+      speedMtS: 5600,
+      casLatency: "CL40",
+      profileSupport: "XMP",
+      priceEur: 429,
+      sourceRefs: "https://www.corsair.com/us/en/c/memory",
+    },
+  ];
+
+  const powerSupplySeed = [
+    {
+      name: "Corsair RM1000x SHIFT",
+      brand: "Corsair",
+      wattage: 1000,
+      efficiencyRating: "80+ Gold",
+      atxStandard: "ATX 3.0",
+      modularity: "Fully Modular",
+      pcie5Support: 1,
+      priceEur: 229,
+      sourceRefs: "https://www.corsair.com/us/en/p/psu/cp-9020253-na/rm1000x-shift-fully-modular-atx-power-supply-cp-9020253-na",
+    },
+    {
+      name: "Seasonic FOCUS GX-850",
+      brand: "Seasonic",
+      wattage: 850,
+      efficiencyRating: "80+ Gold",
+      atxStandard: "ATX 3.0",
+      modularity: "Fully Modular",
+      pcie5Support: 1,
+      priceEur: 169,
+      sourceRefs: "https://seasonic.com/focus-gx",
+    },
+    {
+      name: "be quiet! Straight Power 12 1200W",
+      brand: "be quiet!",
+      wattage: 1200,
+      efficiencyRating: "80+ Platinum",
+      atxStandard: "ATX 3.0",
+      modularity: "Fully Modular",
+      pcie5Support: 1,
+      priceEur: 279,
+      sourceRefs: "https://www.bequiet.com/en/powersupply/straight-power-12/4103",
+    },
+    {
+      name: "Corsair HX1500i",
+      brand: "Corsair",
+      wattage: 1500,
+      efficiencyRating: "80+ Platinum",
+      atxStandard: "ATX 3.1",
+      modularity: "Fully Modular",
+      pcie5Support: 1,
+      priceEur: 399,
+      sourceRefs: "https://www.corsair.com/us/en/p/psu/cp-9020281-na/hx1500i-fully-modular-ultra-low-noise-platinum-atx-1500-watt-pc-power-supply-cp-9020281-na",
+    },
+  ];
+
+  const caseSeed = [
+    {
+      name: "Corsair 5000D AIRFLOW",
+      brand: "Corsair",
+      formFactor: "ATX Mid Tower",
+      maxGpuMm: 420,
+      radiatorSupport: "Up to 360mm front/top",
+      includedFans: "2x 120mm",
+      priceEur: 169,
+      sourceRefs: "https://www.corsair.com/us/en/p/pc-cases/cc-9011210-ww/5000d-airflow-mid-tower-atx-pc-case-black-cc-9011210-ww",
+    },
+    {
+      name: "NZXT H7 Flow",
+      brand: "NZXT",
+      formFactor: "ATX Mid Tower",
+      maxGpuMm: 400,
+      radiatorSupport: "Up to 420mm front, 360mm top",
+      includedFans: "3x 120mm",
+      priceEur: 139,
+      sourceRefs: "https://nzxt.com/product/h7-flow",
+    },
+    {
+      name: "Lian Li LANCOOL 216",
+      brand: "Lian Li",
+      formFactor: "ATX Mid Tower",
+      maxGpuMm: 392,
+      radiatorSupport: "Up to 360mm top/front",
+      includedFans: "2x 160mm + 1x 140mm",
+      priceEur: 109,
+      sourceRefs: "https://lian-li.com/product/lancool-216",
+    },
+  ];
+
+  const motherboardSeed = [
+    {
+      name: "ASUS ProArt X670E-CREATOR WIFI",
+      brand: "ASUS",
+      socket: "AM5",
+      chipset: "X670E",
+      memorySupport: "DDR5",
+      maxMemoryGb: 192,
+      pcieGen5Support: 1,
+      priceEur: 449,
+      sourceRefs: "https://www.asus.com/motherboards-components/motherboards/proart/proart-x670e-creator-wifi/",
+    },
+    {
+      name: "MSI MAG X670E TOMAHAWK WIFI",
+      brand: "MSI",
+      socket: "AM5",
+      chipset: "X670E",
+      memorySupport: "DDR5",
+      maxMemoryGb: 192,
+      pcieGen5Support: 1,
+      priceEur: 319,
+      sourceRefs: "https://www.msi.com/Motherboard/MAG-X670E-TOMAHAWK-WIFI",
+    },
+    {
+      name: "GIGABYTE Z790 AORUS ELITE X WIFI7",
+      brand: "Gigabyte",
+      socket: "LGA1700",
+      chipset: "Z790",
+      memorySupport: "DDR5",
+      maxMemoryGb: 192,
+      pcieGen5Support: 1,
+      priceEur: 329,
+      sourceRefs: "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-X-WIFI7",
+    },
+    {
+      name: "ASUS ROG STRIX Z890-E GAMING WIFI",
+      brand: "ASUS",
+      socket: "LGA1851",
+      chipset: "Z890",
+      memorySupport: "DDR5",
+      maxMemoryGb: 192,
+      pcieGen5Support: 1,
+      priceEur: 519,
+      sourceRefs: "https://www.asus.com/motherboards-components/motherboards/all-series/filter?Category=Intel",
+    },
+  ];
+
+  const compactSystemSeed = [
+    {
+      name: "Mac mini M4 AI Starter",
+      vendor: "Apple",
+      chip: "Apple M4",
+      memoryGb: 16,
+      storageGb: 512,
+      gpuClass: "Integrated Apple GPU",
+      installedSoftware: "Homebrew, Python 3.12, Ollama, LM Studio, VS Code, Docker Desktop",
+      bestFor: "Entry local inference, coding, and API prototyping",
+      priceEur: 899,
+      inStock: 1,
+      sourceRefs:
+        "https://www.apple.com/mac-mini/ | https://ollama.com/ | https://lmstudio.ai/ | https://www.docker.com/products/docker-desktop/",
+    },
+    {
+      name: "Mac mini M4 Pro Creator",
+      vendor: "Apple",
+      chip: "Apple M4 Pro",
+      memoryGb: 48,
+      storageGb: 1000,
+      gpuClass: "Integrated Apple GPU (Pro tier)",
+      installedSoftware: "Homebrew, Python 3.12, Ollama, llama.cpp, VS Code, Docker Desktop, GitHub CLI",
+      bestFor: "Heavier local model workflows and multi-container dev stacks",
+      priceEur: 1999,
+      inStock: 1,
+      sourceRefs:
+        "https://www.apple.com/mac-mini/ | https://github.com/ggml-org/llama.cpp | https://code.visualstudio.com/",
+    },
+    {
+      name: "Mac mini M2 Value Dev",
+      vendor: "Apple",
+      chip: "Apple M2",
+      memoryGb: 24,
+      storageGb: 512,
+      gpuClass: "Integrated Apple GPU",
+      installedSoftware: "Homebrew, Python 3.11, Ollama, VS Code, Postman",
+      bestFor: "Budget macOS AI dev environment and small model testing",
+      priceEur: 799,
+      inStock: 1,
+      sourceRefs: "https://www.apple.com/shop/buy-mac/mac-mini | https://www.postman.com/downloads/",
+    },
   ];
 
   gpuSeed.forEach((gpu) => {
@@ -842,6 +1467,26 @@ function seedCatalog(db: DatabaseSync): void {
 
   cpuSeed.forEach((cpu) => {
     ensureCpu(db, cpu);
+  });
+
+  ramKitSeed.forEach((ramKit) => {
+    ensureRamKit(db, ramKit);
+  });
+
+  powerSupplySeed.forEach((psu) => {
+    ensurePowerSupply(db, psu);
+  });
+
+  caseSeed.forEach((pcCase) => {
+    ensureCase(db, pcCase);
+  });
+
+  motherboardSeed.forEach((motherboard) => {
+    ensureMotherboard(db, motherboard);
+  });
+
+  compactSystemSeed.forEach((compactSystem) => {
+    ensureCompactAiSystem(db, compactSystem);
   });
 
   const cpu7900 = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7900' LIMIT 1").get() as { id: number };
@@ -1338,6 +1983,73 @@ function initDatabase(): DatabaseSync {
       FOREIGN KEY (gpu_id) REFERENCES gpus(id)
     );
 
+    CREATE TABLE IF NOT EXISTS ram_kits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      brand TEXT NOT NULL,
+      capacity_gb INTEGER NOT NULL,
+      modules TEXT NOT NULL,
+      ddr_gen TEXT NOT NULL,
+      speed_mt_s INTEGER NOT NULL,
+      cas_latency TEXT NOT NULL,
+      profile_support TEXT NOT NULL,
+      price_eur INTEGER NOT NULL,
+      source_refs TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS power_supplies (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      brand TEXT NOT NULL,
+      wattage INTEGER NOT NULL,
+      efficiency_rating TEXT NOT NULL,
+      atx_standard TEXT NOT NULL,
+      modularity TEXT NOT NULL,
+      pcie_5_support INTEGER NOT NULL DEFAULT 0,
+      price_eur INTEGER NOT NULL,
+      source_refs TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS pc_cases (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      brand TEXT NOT NULL,
+      form_factor TEXT NOT NULL,
+      max_gpu_mm INTEGER NOT NULL,
+      radiator_support TEXT NOT NULL,
+      included_fans TEXT NOT NULL,
+      price_eur INTEGER NOT NULL,
+      source_refs TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS motherboards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      brand TEXT NOT NULL,
+      socket TEXT NOT NULL,
+      chipset TEXT NOT NULL,
+      memory_support TEXT NOT NULL,
+      max_memory_gb INTEGER NOT NULL,
+      pcie_gen5_support INTEGER NOT NULL DEFAULT 0,
+      price_eur INTEGER NOT NULL,
+      source_refs TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS compact_ai_systems (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      vendor TEXT NOT NULL,
+      chip TEXT NOT NULL,
+      memory_gb INTEGER NOT NULL,
+      storage_gb INTEGER NOT NULL,
+      gpu_class TEXT NOT NULL,
+      installed_software TEXT NOT NULL,
+      best_for TEXT NOT NULL,
+      price_eur INTEGER NOT NULL,
+      in_stock INTEGER NOT NULL DEFAULT 1,
+      source_refs TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS profile_builds (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       profile_key TEXT NOT NULL,
@@ -1476,6 +2188,51 @@ export function listPrebuilts(): PrebuiltRecord[] {
       ORDER BY p.price_eur DESC
     `)
     .all() as PrebuiltRecord[];
+}
+
+export function listRamKits(): RamKitRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, name, brand, capacity_gb, modules, ddr_gen, speed_mt_s, cas_latency, profile_support, price_eur, source_refs FROM ram_kits ORDER BY capacity_gb DESC, speed_mt_s DESC",
+    )
+    .all() as RamKitRecord[];
+}
+
+export function listPowerSupplies(): PowerSupplyRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, name, brand, wattage, efficiency_rating, atx_standard, modularity, pcie_5_support, price_eur, source_refs FROM power_supplies ORDER BY wattage DESC",
+    )
+    .all() as PowerSupplyRecord[];
+}
+
+export function listCases(): CaseRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, name, brand, form_factor, max_gpu_mm, radiator_support, included_fans, price_eur, source_refs FROM pc_cases ORDER BY price_eur DESC",
+    )
+    .all() as CaseRecord[];
+}
+
+export function listMotherboards(): MotherboardRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, name, brand, socket, chipset, memory_support, max_memory_gb, pcie_gen5_support, price_eur, source_refs FROM motherboards ORDER BY price_eur DESC",
+    )
+    .all() as MotherboardRecord[];
+}
+
+export function listCompactAiSystems(): CompactAiSystemRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, name, vendor, chip, memory_gb, storage_gb, gpu_class, installed_software, best_for, price_eur, in_stock, source_refs FROM compact_ai_systems ORDER BY price_eur DESC",
+    )
+    .all() as CompactAiSystemRecord[];
 }
 
 export function listProfileBuilds(): ProfileBuildRecord[] {
