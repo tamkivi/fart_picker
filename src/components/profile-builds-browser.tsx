@@ -29,6 +29,12 @@ type ProfileBuild = {
   gpu_name: string;
 };
 
+const categoryLabelByProfileKey: Record<string, string> = {
+  "local-llm-inference": "cost efficient Local LLMs",
+  "llm-finetune-starter": "Tuning Stability",
+  "hybrid-ai-gaming": "Multitasking",
+};
+
 export function ProfileBuildsBrowser({
   profiles,
   builds,
@@ -70,7 +76,9 @@ export function ProfileBuildsBrowser({
               className={`wireframe-panel stagger-in p-5 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <p className="label-pill inline-block">AI Build Profile</p>
+              <p className="label-pill inline-block">
+                {categoryLabelByProfileKey[profile.key] ?? "Build Category"}
+              </p>
               <h2 className="font-display mt-4 text-2xl font-semibold">{profile.name}</h2>
               <p className="mt-3 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
               <p className="mt-2 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
