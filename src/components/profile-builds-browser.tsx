@@ -43,6 +43,7 @@ export function ProfileBuildsBrowser({
   }, [builds]);
 
   const activeBuilds = buildsByProfile[activeProfileKey] ?? [];
+  const activeProfile = profiles.find((profile) => profile.key === activeProfileKey);
 
   return (
     <section className="mt-8">
@@ -71,7 +72,12 @@ export function ProfileBuildsBrowser({
 
       <section className="wireframe-panel mt-6 p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
+          <div>
+            <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
+            <p className="mt-1 text-sm text-[color:var(--muted)]">
+              Selected category: {activeProfile?.name ?? "None"}
+            </p>
+          </div>
           <span className="label-pill">{activeBuilds.length} options</span>
         </div>
 
