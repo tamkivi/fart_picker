@@ -82,6 +82,22 @@ export type AccountSummary = {
   users: number;
 };
 
+export type OrderStatus = "PENDING" | "CHECKOUT_CREATED" | "PAID" | "CANCELED" | "FAILED";
+
+export type OrderRecord = {
+  id: number;
+  user_id: number;
+  profile_build_id: number;
+  build_name: string;
+  amount_eur_cents: number;
+  currency: string;
+  status: OrderStatus;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 const globalForCatalogDb = globalThis as unknown as {
   catalogDb: DatabaseSync | undefined;
 };
@@ -1236,6 +1252,26 @@ function initDatabase(): DatabaseSync {
 
     CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+
+    CREATE TABLE IF NOT EXISTS orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      profile_build_id INTEGER NOT NULL,
+      build_name TEXT NOT NULL,
+      amount_eur_cents INTEGER NOT NULL,
+      currency TEXT NOT NULL DEFAULT 'eur',
+      status TEXT NOT NULL CHECK(status IN ('PENDING', 'CHECKOUT_CREATED', 'PAID', 'CANCELED', 'FAILED')) DEFAULT 'PENDING',
+      stripe_checkout_session_id TEXT UNIQUE,
+      stripe_payment_intent_id TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (profile_build_id) REFERENCES profile_builds(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+    CREATE INDEX IF NOT EXISTS idx_orders_profile_build_id ON orders(profile_build_id);
+    CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
   `);
 
   ensureEuroPriceColumns(db);
@@ -1501,6 +1537,122 @@ export function getAccountSummary(): AccountSummary {
     devs: row.devs ?? 0,
     users: row.users ?? 0,
   };
+}
+
+export function createPendingOrderForBuild(input: {
+  userId: number;
+  buildId: number;
+}): { ok: true; orderId: number; buildName: string; amountEurCents: number } | { ok: false; message: string } {
+  const db = getDb();
+  const build = db
+    .prepare("SELECT id, build_name, estimated_price_eur FROM profile_builds WHERE id = ? LIMIT 1")
+    .get(input.buildId) as { id: number; build_name: string; estimated_price_eur: number } | undefined;
+
+  if (!build) {
+    return { ok: false, message: "Build not found." };
+  }
+
+  const amountEurCents = Math.max(0, Math.trunc(build.estimated_price_eur * 100));
+  const inserted = db
+    .prepare(
+      "INSERT INTO orders (user_id, profile_build_id, build_name, amount_eur_cents, currency, status) VALUES (?, ?, ?, ?, 'eur', 'PENDING')",
+    )
+    .run(input.userId, build.id, build.build_name, amountEurCents) as { lastInsertRowid: number | bigint };
+
+  const orderId = Number(inserted.lastInsertRowid);
+  return {
+    ok: true,
+    orderId,
+    buildName: build.build_name,
+    amountEurCents,
+  };
+}
+
+export function setOrderCheckoutSession(input: { orderId: number; checkoutSessionId: string }): void {
+  const db = getDb();
+  db.prepare(
+    `
+      UPDATE orders
+      SET status = 'CHECKOUT_CREATED',
+          stripe_checkout_session_id = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `,
+  ).run(input.checkoutSessionId, input.orderId);
+}
+
+export function markOrderPaidFromCheckoutSession(input: {
+  checkoutSessionId: string;
+  paymentIntentId: string | null;
+}): void {
+  const db = getDb();
+  db.prepare(
+    `
+      UPDATE orders
+      SET status = 'PAID',
+          stripe_payment_intent_id = COALESCE(?, stripe_payment_intent_id),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE stripe_checkout_session_id = ?
+    `,
+  ).run(input.paymentIntentId, input.checkoutSessionId);
+}
+
+export function markOrderFailedFromCheckoutSession(input: {
+  checkoutSessionId: string;
+  paymentIntentId: string | null;
+}): void {
+  const db = getDb();
+  db.prepare(
+    `
+      UPDATE orders
+      SET status = 'FAILED',
+          stripe_payment_intent_id = COALESCE(?, stripe_payment_intent_id),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE stripe_checkout_session_id = ?
+    `,
+  ).run(input.paymentIntentId, input.checkoutSessionId);
+}
+
+export function markOrderCanceledFromCheckoutSession(checkoutSessionId: string): void {
+  const db = getDb();
+  db.prepare(
+    `
+      UPDATE orders
+      SET status = 'CANCELED',
+          updated_at = CURRENT_TIMESTAMP
+      WHERE stripe_checkout_session_id = ?
+    `,
+  ).run(checkoutSessionId);
+}
+
+export function getOrderByCheckoutSessionForUser(input: {
+  userId: number;
+  checkoutSessionId: string;
+}): OrderRecord | null {
+  const db = getDb();
+  const row = db
+    .prepare(
+      `
+      SELECT
+        id,
+        user_id,
+        profile_build_id,
+        build_name,
+        amount_eur_cents,
+        currency,
+        status,
+        stripe_checkout_session_id,
+        stripe_payment_intent_id,
+        created_at,
+        updated_at
+      FROM orders
+      WHERE user_id = ? AND stripe_checkout_session_id = ?
+      LIMIT 1
+    `,
+    )
+    .get(input.userId, input.checkoutSessionId);
+
+  return (row as OrderRecord | undefined) ?? null;
 }
 
 export function getAdminEmail(): string {

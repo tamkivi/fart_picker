@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
+import { PurchaseBuildButton } from "@/components/purchase-build-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getProfileBuildById } from "@/lib/catalog-db";
 
@@ -76,6 +77,7 @@ export default async function BuildDetailPage({
           <h2 className="font-display text-3xl font-semibold">Build Notes</h2>
           <p className="mt-3 text-sm text-[color:var(--muted)]">{build.notes}</p>
           <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Source references: {build.source_refs}</p>
+          <PurchaseBuildButton buildId={build.id} priceEur={build.estimated_price_eur} />
           <div className="mt-5">
             <Link href="/" className="label-pill inline-block">
               Back to build profiles
