@@ -73,7 +73,7 @@ export default function Home() {
                   <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                     {gpu.brand} | {gpu.vram_gb}GB VRAM | {gpu.architecture} | AI {gpu.ai_score}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">${gpu.price_usd}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{gpu.price_eur}</p>
                 </div>
               ))}
             </div>
@@ -91,7 +91,7 @@ export default function Home() {
                   <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                     {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.ai_score}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">${cpu.price_usd}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{cpu.price_eur}</p>
                 </div>
               ))}
             </div>
@@ -116,7 +116,7 @@ export default function Home() {
                 </p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">LLM fit: {prebuilt.llm_max_model_size}</p>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="font-semibold">${prebuilt.price_usd}</span>
+                  <span className="font-semibold">€{prebuilt.price_eur}</span>
                   <span className="label-pill">{prebuilt.in_stock ? "In Stock" : "Out of Stock"}</span>
                 </div>
               </article>

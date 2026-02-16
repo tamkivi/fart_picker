@@ -12,7 +12,7 @@ export type GpuRecord = {
   vram_gb: number;
   architecture: string;
   ai_score: number;
-  price_usd: number;
+  price_eur: number;
 };
 
 export type CpuRecord = {
@@ -23,7 +23,7 @@ export type CpuRecord = {
   threads: number;
   socket: string;
   ai_score: number;
-  price_usd: number;
+  price_eur: number;
 };
 
 export type PrebuiltRecord = {
@@ -34,7 +34,7 @@ export type PrebuiltRecord = {
   ram_gb: number;
   storage_gb: number;
   llm_max_model_size: string;
-  price_usd: number;
+  price_eur: number;
   in_stock: number;
   cpu_name: string;
   gpu_name: string;
@@ -48,7 +48,7 @@ export type ProfileBuildRecord = {
   target_model: string;
   ram_gb: number;
   storage_gb: number;
-  estimated_price_usd: number;
+  estimated_price_eur: number;
   notes: string;
   source_refs: string;
   cpu_name: string;
@@ -125,6 +125,39 @@ function expiresAt(days: number): string {
   return until.toISOString();
 }
 
+function hasColumn(db: DatabaseSync, tableName: string, columnName: string): boolean {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
+  return columns.some((column) => column.name === columnName);
+}
+
+function ensureEuroPriceColumns(db: DatabaseSync): void {
+  if (!hasColumn(db, "gpus", "price_eur")) {
+    db.exec("ALTER TABLE gpus ADD COLUMN price_eur INTEGER;");
+  }
+  if (!hasColumn(db, "cpus", "price_eur")) {
+    db.exec("ALTER TABLE cpus ADD COLUMN price_eur INTEGER;");
+  }
+  if (!hasColumn(db, "prebuilts", "price_eur")) {
+    db.exec("ALTER TABLE prebuilts ADD COLUMN price_eur INTEGER;");
+  }
+  if (!hasColumn(db, "profile_builds", "estimated_price_eur")) {
+    db.exec("ALTER TABLE profile_builds ADD COLUMN estimated_price_eur INTEGER;");
+  }
+
+  if (hasColumn(db, "gpus", "price_usd")) {
+    db.exec("UPDATE gpus SET price_eur = COALESCE(price_eur, ROUND(price_usd * 0.84));");
+  }
+  if (hasColumn(db, "cpus", "price_usd")) {
+    db.exec("UPDATE cpus SET price_eur = COALESCE(price_eur, ROUND(price_usd * 0.84));");
+  }
+  if (hasColumn(db, "prebuilts", "price_usd")) {
+    db.exec("UPDATE prebuilts SET price_eur = COALESCE(price_eur, ROUND(price_usd * 0.84));");
+  }
+  if (hasColumn(db, "profile_builds", "estimated_price_usd")) {
+    db.exec("UPDATE profile_builds SET estimated_price_eur = COALESCE(estimated_price_eur, ROUND(estimated_price_usd * 0.84));");
+  }
+}
+
 function ensureGpu(
   db: DatabaseSync,
   gpu: {
@@ -134,17 +167,51 @@ function ensureGpu(
     architecture: string;
     tdpWatts: number;
     aiScore: number;
-    priceUsd: number;
+    priceEur: number;
   },
 ): number {
+  const hasLegacyUsd = hasColumn(db, "gpus", "price_usd");
   const existing = db.prepare("SELECT id FROM gpus WHERE name = ? LIMIT 1").get(gpu.name) as { id: number } | undefined;
   if (existing) {
+    if (hasLegacyUsd) {
+      db.prepare(
+        "UPDATE gpus SET brand = ?, vram_gb = ?, architecture = ?, tdp_watts = ?, ai_score = ?, price_eur = ?, price_usd = ? WHERE id = ?",
+      ).run(
+        gpu.brand,
+        gpu.vramGb,
+        gpu.architecture,
+        gpu.tdpWatts,
+        gpu.aiScore,
+        gpu.priceEur,
+        Math.round(gpu.priceEur / 0.84),
+        existing.id,
+      );
+    } else {
+      db.prepare(
+        "UPDATE gpus SET brand = ?, vram_gb = ?, architecture = ?, tdp_watts = ?, ai_score = ?, price_eur = ? WHERE id = ?",
+      ).run(gpu.brand, gpu.vramGb, gpu.architecture, gpu.tdpWatts, gpu.aiScore, gpu.priceEur, existing.id);
+    }
     return existing.id;
   }
 
-  db.prepare(
-    "INSERT INTO gpus (name, brand, vram_gb, architecture, tdp_watts, ai_score, price_usd) VALUES (?, ?, ?, ?, ?, ?, ?)",
-  ).run(gpu.name, gpu.brand, gpu.vramGb, gpu.architecture, gpu.tdpWatts, gpu.aiScore, gpu.priceUsd);
+  if (hasLegacyUsd) {
+    db.prepare(
+      "INSERT INTO gpus (name, brand, vram_gb, architecture, tdp_watts, ai_score, price_eur, price_usd) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      gpu.name,
+      gpu.brand,
+      gpu.vramGb,
+      gpu.architecture,
+      gpu.tdpWatts,
+      gpu.aiScore,
+      gpu.priceEur,
+      Math.round(gpu.priceEur / 0.84),
+    );
+  } else {
+    db.prepare(
+      "INSERT INTO gpus (name, brand, vram_gb, architecture, tdp_watts, ai_score, price_eur) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    ).run(gpu.name, gpu.brand, gpu.vramGb, gpu.architecture, gpu.tdpWatts, gpu.aiScore, gpu.priceEur);
+  }
 
   const inserted = db.prepare("SELECT id FROM gpus WHERE name = ? LIMIT 1").get(gpu.name) as { id: number };
   return inserted.id;
@@ -162,31 +229,171 @@ function ensureCpu(
     socket: string;
     tdpWatts: number;
     aiScore: number;
-    priceUsd: number;
+    priceEur: number;
   },
 ): number {
+  const hasLegacyUsd = hasColumn(db, "cpus", "price_usd");
   const existing = db.prepare("SELECT id FROM cpus WHERE name = ? LIMIT 1").get(cpu.name) as { id: number } | undefined;
   if (existing) {
+    if (hasLegacyUsd) {
+      db.prepare(
+        "UPDATE cpus SET brand = ?, cores = ?, threads = ?, base_clock_ghz = ?, boost_clock_ghz = ?, socket = ?, tdp_watts = ?, ai_score = ?, price_eur = ?, price_usd = ? WHERE id = ?",
+      ).run(
+        cpu.brand,
+        cpu.cores,
+        cpu.threads,
+        cpu.baseClockGhz,
+        cpu.boostClockGhz,
+        cpu.socket,
+        cpu.tdpWatts,
+        cpu.aiScore,
+        cpu.priceEur,
+        Math.round(cpu.priceEur / 0.84),
+        existing.id,
+      );
+    } else {
+      db.prepare(
+        "UPDATE cpus SET brand = ?, cores = ?, threads = ?, base_clock_ghz = ?, boost_clock_ghz = ?, socket = ?, tdp_watts = ?, ai_score = ?, price_eur = ? WHERE id = ?",
+      ).run(
+        cpu.brand,
+        cpu.cores,
+        cpu.threads,
+        cpu.baseClockGhz,
+        cpu.boostClockGhz,
+        cpu.socket,
+        cpu.tdpWatts,
+        cpu.aiScore,
+        cpu.priceEur,
+        existing.id,
+      );
+    }
     return existing.id;
   }
 
-  db.prepare(
-    "INSERT INTO cpus (name, brand, cores, threads, base_clock_ghz, boost_clock_ghz, socket, tdp_watts, ai_score, price_usd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-  ).run(
-    cpu.name,
-    cpu.brand,
-    cpu.cores,
-    cpu.threads,
-    cpu.baseClockGhz,
-    cpu.boostClockGhz,
-    cpu.socket,
-    cpu.tdpWatts,
-    cpu.aiScore,
-    cpu.priceUsd,
-  );
+  if (hasLegacyUsd) {
+    db.prepare(
+      "INSERT INTO cpus (name, brand, cores, threads, base_clock_ghz, boost_clock_ghz, socket, tdp_watts, ai_score, price_eur, price_usd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      cpu.name,
+      cpu.brand,
+      cpu.cores,
+      cpu.threads,
+      cpu.baseClockGhz,
+      cpu.boostClockGhz,
+      cpu.socket,
+      cpu.tdpWatts,
+      cpu.aiScore,
+      cpu.priceEur,
+      Math.round(cpu.priceEur / 0.84),
+    );
+  } else {
+    db.prepare(
+      "INSERT INTO cpus (name, brand, cores, threads, base_clock_ghz, boost_clock_ghz, socket, tdp_watts, ai_score, price_eur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      cpu.name,
+      cpu.brand,
+      cpu.cores,
+      cpu.threads,
+      cpu.baseClockGhz,
+      cpu.boostClockGhz,
+      cpu.socket,
+      cpu.tdpWatts,
+      cpu.aiScore,
+      cpu.priceEur,
+    );
+  }
 
   const inserted = db.prepare("SELECT id FROM cpus WHERE name = ? LIMIT 1").get(cpu.name) as { id: number };
   return inserted.id;
+}
+
+function ensurePrebuilt(
+  db: DatabaseSync,
+  prebuilt: {
+    name: string;
+    vendor: string;
+    description: string;
+    priceEur: number;
+    ramGb: number;
+    storageGb: number;
+    llmMaxModelSize: string;
+    inStock: number;
+    cpuId: number;
+    gpuId: number;
+  },
+): void {
+  const hasLegacyUsd = hasColumn(db, "prebuilts", "price_usd");
+  const existing = db.prepare("SELECT id FROM prebuilts WHERE name = ? LIMIT 1").get(prebuilt.name) as
+    | { id: number }
+    | undefined;
+  if (existing) {
+    if (hasLegacyUsd) {
+      db.prepare(
+        "UPDATE prebuilts SET vendor = ?, description = ?, price_eur = ?, price_usd = ?, ram_gb = ?, storage_gb = ?, llm_max_model_size = ?, in_stock = ?, cpu_id = ?, gpu_id = ? WHERE id = ?",
+      ).run(
+        prebuilt.vendor,
+        prebuilt.description,
+        prebuilt.priceEur,
+        Math.round(prebuilt.priceEur / 0.84),
+        prebuilt.ramGb,
+        prebuilt.storageGb,
+        prebuilt.llmMaxModelSize,
+        prebuilt.inStock,
+        prebuilt.cpuId,
+        prebuilt.gpuId,
+        existing.id,
+      );
+    } else {
+      db.prepare(
+        "UPDATE prebuilts SET vendor = ?, description = ?, price_eur = ?, ram_gb = ?, storage_gb = ?, llm_max_model_size = ?, in_stock = ?, cpu_id = ?, gpu_id = ? WHERE id = ?",
+      ).run(
+        prebuilt.vendor,
+        prebuilt.description,
+        prebuilt.priceEur,
+        prebuilt.ramGb,
+        prebuilt.storageGb,
+        prebuilt.llmMaxModelSize,
+        prebuilt.inStock,
+        prebuilt.cpuId,
+        prebuilt.gpuId,
+        existing.id,
+      );
+    }
+    return;
+  }
+
+  if (hasLegacyUsd) {
+    db.prepare(
+      "INSERT INTO prebuilts (name, vendor, description, price_eur, price_usd, ram_gb, storage_gb, llm_max_model_size, in_stock, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      prebuilt.name,
+      prebuilt.vendor,
+      prebuilt.description,
+      prebuilt.priceEur,
+      Math.round(prebuilt.priceEur / 0.84),
+      prebuilt.ramGb,
+      prebuilt.storageGb,
+      prebuilt.llmMaxModelSize,
+      prebuilt.inStock,
+      prebuilt.cpuId,
+      prebuilt.gpuId,
+    );
+  } else {
+    db.prepare(
+      "INSERT INTO prebuilts (name, vendor, description, price_eur, ram_gb, storage_gb, llm_max_model_size, in_stock, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      prebuilt.name,
+      prebuilt.vendor,
+      prebuilt.description,
+      prebuilt.priceEur,
+      prebuilt.ramGb,
+      prebuilt.storageGb,
+      prebuilt.llmMaxModelSize,
+      prebuilt.inStock,
+      prebuilt.cpuId,
+      prebuilt.gpuId,
+    );
+  }
 }
 
 function seedCatalog(db: DatabaseSync): void {
@@ -198,7 +405,7 @@ function seedCatalog(db: DatabaseSync): void {
       architecture: "Ada Lovelace",
       tdpWatts: 450,
       aiScore: 99,
-      priceUsd: 1599,
+      priceEur: 1549,
     },
     {
       name: "NVIDIA RTX 4080 SUPER",
@@ -207,7 +414,7 @@ function seedCatalog(db: DatabaseSync): void {
       architecture: "Ada Lovelace",
       tdpWatts: 320,
       aiScore: 92,
-      priceUsd: 999,
+      priceEur: 949,
     },
     {
       name: "NVIDIA RTX 4070 Ti SUPER",
@@ -216,7 +423,25 @@ function seedCatalog(db: DatabaseSync): void {
       architecture: "Ada Lovelace",
       tdpWatts: 285,
       aiScore: 88,
-      priceUsd: 799,
+      priceEur: 769,
+    },
+    {
+      name: "NVIDIA RTX 4070 SUPER",
+      brand: "NVIDIA",
+      vramGb: 12,
+      architecture: "Ada Lovelace",
+      tdpWatts: 220,
+      aiScore: 84,
+      priceEur: 619,
+    },
+    {
+      name: "NVIDIA RTX 4070",
+      brand: "NVIDIA",
+      vramGb: 12,
+      architecture: "Ada Lovelace",
+      tdpWatts: 200,
+      aiScore: 81,
+      priceEur: 569,
     },
     {
       name: "AMD Radeon RX 7900 XTX",
@@ -225,7 +450,7 @@ function seedCatalog(db: DatabaseSync): void {
       architecture: "RDNA 3",
       tdpWatts: 355,
       aiScore: 86,
-      priceUsd: 999,
+      priceEur: 939,
     },
     {
       name: "AMD Radeon RX 7900 XT",
@@ -234,7 +459,25 @@ function seedCatalog(db: DatabaseSync): void {
       architecture: "RDNA 3",
       tdpWatts: 300,
       aiScore: 82,
-      priceUsd: 899,
+      priceEur: 859,
+    },
+    {
+      name: "AMD Radeon RX 7800 XT",
+      brand: "AMD",
+      vramGb: 16,
+      architecture: "RDNA 3",
+      tdpWatts: 263,
+      aiScore: 78,
+      priceEur: 529,
+    },
+    {
+      name: "AMD Radeon RX 7700 XT",
+      brand: "AMD",
+      vramGb: 12,
+      architecture: "RDNA 3",
+      tdpWatts: 245,
+      aiScore: 72,
+      priceEur: 459,
     },
     {
       name: "NVIDIA RTX 4060 Ti 16GB",
@@ -243,7 +486,34 @@ function seedCatalog(db: DatabaseSync): void {
       architecture: "Ada Lovelace",
       tdpWatts: 160,
       aiScore: 73,
-      priceUsd: 499,
+      priceEur: 479,
+    },
+    {
+      name: "NVIDIA RTX 4060",
+      brand: "NVIDIA",
+      vramGb: 8,
+      architecture: "Ada Lovelace",
+      tdpWatts: 115,
+      aiScore: 64,
+      priceEur: 319,
+    },
+    {
+      name: "AMD Radeon RX 7600 XT",
+      brand: "AMD",
+      vramGb: 16,
+      architecture: "RDNA 3",
+      tdpWatts: 190,
+      aiScore: 66,
+      priceEur: 329,
+    },
+    {
+      name: "NVIDIA RTX 3090",
+      brand: "NVIDIA",
+      vramGb: 24,
+      architecture: "Ampere",
+      tdpWatts: 350,
+      aiScore: 83,
+      priceEur: 1149,
     },
   ];
 
@@ -258,7 +528,7 @@ function seedCatalog(db: DatabaseSync): void {
       socket: "AM5",
       tdpWatts: 170,
       aiScore: 95,
-      priceUsd: 699,
+      priceEur: 649,
     },
     {
       name: "AMD Ryzen 9 7900",
@@ -270,7 +540,7 @@ function seedCatalog(db: DatabaseSync): void {
       socket: "AM5",
       tdpWatts: 65,
       aiScore: 88,
-      priceUsd: 429,
+      priceEur: 399,
     },
     {
       name: "AMD Ryzen 9 7900X",
@@ -282,7 +552,43 @@ function seedCatalog(db: DatabaseSync): void {
       socket: "AM5",
       tdpWatts: 170,
       aiScore: 90,
-      priceUsd: 549,
+      priceEur: 509,
+    },
+    {
+      name: "AMD Ryzen 7 7800X3D",
+      brand: "AMD",
+      cores: 8,
+      threads: 16,
+      baseClockGhz: 4.2,
+      boostClockGhz: 5.0,
+      socket: "AM5",
+      tdpWatts: 120,
+      aiScore: 82,
+      priceEur: 369,
+    },
+    {
+      name: "AMD Ryzen 7 7700",
+      brand: "AMD",
+      cores: 8,
+      threads: 16,
+      baseClockGhz: 3.8,
+      boostClockGhz: 5.3,
+      socket: "AM5",
+      tdpWatts: 65,
+      aiScore: 78,
+      priceEur: 289,
+    },
+    {
+      name: "AMD Ryzen 5 7600",
+      brand: "AMD",
+      cores: 6,
+      threads: 12,
+      baseClockGhz: 3.8,
+      boostClockGhz: 5.1,
+      socket: "AM5",
+      tdpWatts: 65,
+      aiScore: 70,
+      priceEur: 209,
     },
     {
       name: "Intel Core i9-14900K",
@@ -294,7 +600,7 @@ function seedCatalog(db: DatabaseSync): void {
       socket: "LGA1700",
       tdpWatts: 125,
       aiScore: 93,
-      priceUsd: 589,
+      priceEur: 559,
     },
     {
       name: "Intel Core i7-14700K",
@@ -306,7 +612,43 @@ function seedCatalog(db: DatabaseSync): void {
       socket: "LGA1700",
       tdpWatts: 125,
       aiScore: 87,
-      priceUsd: 409,
+      priceEur: 389,
+    },
+    {
+      name: "Intel Core i5-14600K",
+      brand: "Intel",
+      cores: 14,
+      threads: 20,
+      baseClockGhz: 3.5,
+      boostClockGhz: 5.3,
+      socket: "LGA1700",
+      tdpWatts: 125,
+      aiScore: 76,
+      priceEur: 319,
+    },
+    {
+      name: "Intel Core i7-13700K",
+      brand: "Intel",
+      cores: 16,
+      threads: 24,
+      baseClockGhz: 3.4,
+      boostClockGhz: 5.4,
+      socket: "LGA1700",
+      tdpWatts: 125,
+      aiScore: 83,
+      priceEur: 349,
+    },
+    {
+      name: "Intel Core i9-13900K",
+      brand: "Intel",
+      cores: 24,
+      threads: 32,
+      baseClockGhz: 3.0,
+      boostClockGhz: 5.8,
+      socket: "LGA1700",
+      tdpWatts: 125,
+      aiScore: 89,
+      priceEur: 499,
     },
   ];
 
@@ -318,71 +660,108 @@ function seedCatalog(db: DatabaseSync): void {
     ensureCpu(db, cpu);
   });
 
-  const prebuiltCount = (db.prepare("SELECT COUNT(*) AS count FROM prebuilts").get() as { count: number }).count;
-  if (prebuiltCount === 0) {
-    const cpu7900 = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7900' LIMIT 1").get() as { id: number };
-    const cpu7950x = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7950X' LIMIT 1").get() as { id: number };
-    const cpui9 = db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i9-14900K' LIMIT 1").get() as { id: number };
+  const cpu7900 = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7900' LIMIT 1").get() as { id: number };
+  const cpu7950x = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7950X' LIMIT 1").get() as { id: number };
+  const cpui9 = db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i9-14900K' LIMIT 1").get() as { id: number };
+  const cpui7 = db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i7-14700K' LIMIT 1").get() as { id: number };
+  const cpui5 = db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i5-14600K' LIMIT 1").get() as { id: number };
+  const cpu7800x3d = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 7 7800X3D' LIMIT 1").get() as { id: number };
 
-    const gpu4080s = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4080 SUPER' LIMIT 1").get() as { id: number };
-    const gpu4090 = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4090' LIMIT 1").get() as { id: number };
-    const gpu7900xtx = db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 7900 XTX' LIMIT 1").get() as {
-      id: number;
-    };
+  const gpu4080s = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4080 SUPER' LIMIT 1").get() as { id: number };
+  const gpu4090 = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4090' LIMIT 1").get() as { id: number };
+  const gpu4070ti = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4070 Ti SUPER' LIMIT 1").get() as { id: number };
+  const gpu4070s = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4070 SUPER' LIMIT 1").get() as { id: number };
+  const gpu7900xtx = db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 7900 XTX' LIMIT 1").get() as { id: number };
+  const gpu7800xt = db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 7800 XT' LIMIT 1").get() as { id: number };
+  const gpu4060ti = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4060 Ti 16GB' LIMIT 1").get() as { id: number };
 
-    db.prepare(
-      "INSERT INTO prebuilts (name, vendor, description, price_usd, ram_gb, storage_gb, llm_max_model_size, in_stock, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(
-      "Nebula Forge XL",
-      "fart_picker Labs",
-      "High-end local LLM workstation for 34B+ quantized models.",
-      3899,
-      128,
-      4000,
-      "70B q4 (select workloads)",
-      1,
-      cpu7950x.id,
-      gpu4090.id,
-    );
-
-    db.prepare(
-      "INSERT INTO prebuilts (name, vendor, description, price_usd, ram_gb, storage_gb, llm_max_model_size, in_stock, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(
-      "Vector Home Pro",
-      "fart_picker Labs",
-      "Balanced AI dev tower for daily coding and local inference.",
-      2299,
-      64,
-      2000,
-      "34B q4",
-      1,
-      cpu7900.id,
-      gpu4080s.id,
-    );
-
-    db.prepare(
-      "INSERT INTO prebuilts (name, vendor, description, price_usd, ram_gb, storage_gb, llm_max_model_size, in_stock, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(
-      "Redline Studio AI",
-      "fart_picker Labs",
-      "VRAM-heavy AMD option for open-source inference stacks.",
-      2099,
-      64,
-      2000,
-      "30B q4",
-      0,
-      cpui9.id,
-      gpu7900xtx.id,
-    );
-  }
+  ensurePrebuilt(db, {
+    name: "Nebula Forge XL",
+    vendor: "fart_picker Labs",
+    description: "High-end local LLM workstation for 34B+ quantized models.",
+    priceEur: 3349,
+    ramGb: 128,
+    storageGb: 4000,
+    llmMaxModelSize: "70B q4 (select workloads)",
+    inStock: 1,
+    cpuId: cpu7950x.id,
+    gpuId: gpu4090.id,
+  });
+  ensurePrebuilt(db, {
+    name: "Vector Home Pro",
+    vendor: "fart_picker Labs",
+    description: "Balanced AI dev tower for daily coding and local inference.",
+    priceEur: 2099,
+    ramGb: 64,
+    storageGb: 2000,
+    llmMaxModelSize: "34B q4",
+    inStock: 1,
+    cpuId: cpu7900.id,
+    gpuId: gpu4080s.id,
+  });
+  ensurePrebuilt(db, {
+    name: "Redline Studio AI",
+    vendor: "fart_picker Labs",
+    description: "VRAM-heavy AMD option for open-source inference stacks.",
+    priceEur: 1999,
+    ramGb: 64,
+    storageGb: 2000,
+    llmMaxModelSize: "30B q4",
+    inStock: 1,
+    cpuId: cpui9.id,
+    gpuId: gpu7900xtx.id,
+  });
+  ensurePrebuilt(db, {
+    name: "Creator Edge 16",
+    vendor: "fart_picker Labs",
+    description: "Creator/gaming hybrid with strong CUDA inference support.",
+    priceEur: 1899,
+    ramGb: 64,
+    storageGb: 2000,
+    llmMaxModelSize: "30B q4",
+    inStock: 1,
+    cpuId: cpui7.id,
+    gpuId: gpu4070ti.id,
+  });
+  ensurePrebuilt(db, {
+    name: "Inference Compact",
+    vendor: "fart_picker Labs",
+    description: "Power-efficient desktop for 7B-13B local models.",
+    priceEur: 1329,
+    ramGb: 32,
+    storageGb: 1000,
+    llmMaxModelSize: "13B q4",
+    inStock: 1,
+    cpuId: cpui5.id,
+    gpuId: gpu4060ti.id,
+  });
+  ensurePrebuilt(db, {
+    name: "Raster AI Midrange",
+    vendor: "fart_picker Labs",
+    description: "Balanced AMD raster and local inference setup.",
+    priceEur: 1599,
+    ramGb: 64,
+    storageGb: 2000,
+    llmMaxModelSize: "20B q4",
+    inStock: 1,
+    cpuId: cpu7800x3d.id,
+    gpuId: gpu7800xt.id,
+  });
+  ensurePrebuilt(db, {
+    name: "Stable Dev Box",
+    vendor: "fart_picker Labs",
+    description: "Reliable day-to-day AI coding machine with quiet thermals.",
+    priceEur: 1749,
+    ramGb: 64,
+    storageGb: 2000,
+    llmMaxModelSize: "20B q4",
+    inStock: 1,
+    cpuId: cpu7900.id,
+    gpuId: gpu4070s.id,
+  });
 }
 
 function seedProfileBuilds(db: DatabaseSync): void {
-  const count = (db.prepare("SELECT COUNT(*) AS count FROM profile_builds").get() as { count: number }).count;
-  if (count > 0) {
-    return;
-  }
-
   const ids = {
     cpu7950x: (db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7950X' LIMIT 1").get() as { id: number }).id,
     cpu7900: (db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7900' LIMIT 1").get() as { id: number }).id,
@@ -403,6 +782,13 @@ function seedProfileBuilds(db: DatabaseSync): void {
     gpu4060ti16: (db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4060 Ti 16GB' LIMIT 1").get() as {
       id: number;
     }).id,
+    gpu4070s: (db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4070 SUPER' LIMIT 1").get() as { id: number })
+      .id,
+    gpu7800xt: (db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 7800 XT' LIMIT 1").get() as { id: number })
+      .id,
+    cpui5: (db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i5-14600K' LIMIT 1").get() as { id: number }).id,
+    cpu7800x3d: (db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 7 7800X3D' LIMIT 1").get() as { id: number })
+      .id,
   };
 
   const buildRows: Array<{
@@ -412,7 +798,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
     targetModel: string;
     ramGb: number;
     storageGb: number;
-    estimatedPriceUsd: number;
+    estimatedPriceEur: number;
     notes: string;
     sourceRefs: string;
     cpuId: number;
@@ -425,7 +811,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "70B q4 (select workloads)",
       ramGb: 128,
       storageGb: 4000,
-      estimatedPriceUsd: 3599,
+      estimatedPriceEur: 3349,
       notes: "Highest VRAM headroom for local quantized models and long sessions.",
       sourceRefs:
         "GPU data: nvidia.com RTX 4090 specs; CPU data: ir.amd.com Ryzen 7000 launch (7950X).",
@@ -439,7 +825,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "34B q4",
       ramGb: 64,
       storageGb: 2000,
-      estimatedPriceUsd: 2299,
+      estimatedPriceEur: 2099,
       notes: "Strong tokens/sec per dollar while keeping CUDA ecosystem compatibility.",
       sourceRefs:
         "GPU data: nvidia.com RTX 4080 SUPER specs; CPU data: ir.amd.com Ryzen 7000 non-X launch (7900).",
@@ -453,7 +839,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "34B q4 / 70B split workloads",
       ramGb: 96,
       storageGb: 2000,
-      estimatedPriceUsd: 2399,
+      estimatedPriceEur: 2249,
       notes: "Maximizes VRAM at lower entry cost if your stack supports ROCm.",
       sourceRefs:
         "GPU data: amd.com RX 7900 launch specs; CPU data: intel.com i7-14700K specs.",
@@ -467,7 +853,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "7B-13B LoRA",
       ramGb: 96,
       storageGb: 2000,
-      estimatedPriceUsd: 2599,
+      estimatedPriceEur: 2399,
       notes: "Good memory + CUDA path for LoRA/QLoRA learning and experimentation.",
       sourceRefs:
         "GPU data: nvidia.com RTX 4070 Ti SUPER family specs; CPU data: ir.amd.com Ryzen 7000 launch (7950X).",
@@ -481,7 +867,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "7B LoRA / embedding workloads",
       ramGb: 64,
       storageGb: 2000,
-      estimatedPriceUsd: 1699,
+      estimatedPriceEur: 1599,
       notes: "Lowest-cost option for learning workflows and light local AI development.",
       sourceRefs:
         "GPU data: nvidia.com RTX 4060 Ti family + launch pricing news; CPU data: ir.amd.com Ryzen 7900 announcement.",
@@ -495,7 +881,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "13B LoRA / mixed inference",
       ramGb: 96,
       storageGb: 2000,
-      estimatedPriceUsd: 2499,
+      estimatedPriceEur: 2299,
       notes: "Higher memory footprint and strong multicore CPU for data prep + training loops.",
       sourceRefs: "GPU data: amd.com RX 7900 XT specs; CPU data: intel.com i9-14900K specs.",
       cpuId: ids.cpui9,
@@ -508,7 +894,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "34B q4 + high-end 4K gaming",
       ramGb: 64,
       storageGb: 2000,
-      estimatedPriceUsd: 2699,
+      estimatedPriceEur: 2499,
       notes: "Strong creator and gaming performance with robust local AI throughput.",
       sourceRefs: "GPU data: nvidia.com RTX 4080 SUPER specs; CPU data: intel.com i9-14900K specs.",
       cpuId: ids.cpui9,
@@ -521,7 +907,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "13B-34B q4 + high refresh gaming",
       ramGb: 64,
       storageGb: 2000,
-      estimatedPriceUsd: 2099,
+      estimatedPriceEur: 1969,
       notes: "Great 1440p gaming and local inference with lower power than flagship setups.",
       sourceRefs: "GPU data: nvidia.com RTX 4070 Ti SUPER specs; CPU data: intel.com i7-14700K specs.",
       cpuId: ids.cpui7,
@@ -534,32 +920,132 @@ function seedProfileBuilds(db: DatabaseSync): void {
       targetModel: "30B-34B q4 + raster-heavy gaming",
       ramGb: 64,
       storageGb: 2000,
-      estimatedPriceUsd: 2199,
+      estimatedPriceEur: 2049,
       notes: "High VRAM plus solid gaming value for users open to AMD GPU tooling.",
       sourceRefs: "GPU data: amd.com RX 7900 XTX specs; CPU data: ir.amd.com Ryzen 7000 non-X launch.",
       cpuId: ids.cpu7900x,
       gpuId: ids.gpu7900xtx,
     },
+    {
+      profileKey: "local-llm-inference",
+      profileLabel: "Local LLM Inference",
+      buildName: "Efficient 20B Workstation",
+      targetModel: "20B q4",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1749,
+      notes: "Lower total power while retaining strong CUDA compatibility.",
+      sourceRefs: "GPU data: nvidia.com RTX 4070 SUPER specs; CPU data: intel.com i5-14600K specs.",
+      cpuId: ids.cpui5,
+      gpuId: ids.gpu4070s,
+    },
+    {
+      profileKey: "local-llm-inference",
+      profileLabel: "Local LLM Inference",
+      buildName: "AMD Value 16GB Inference",
+      targetModel: "13B-20B q4",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1599,
+      notes: "Budget-friendly entry with 16GB VRAM and strong raster value.",
+      sourceRefs: "GPU data: amd.com RX 7800 XT specs; CPU data: ir.amd.com Ryzen 7700 launch details.",
+      cpuId: ids.cpu7900,
+      gpuId: ids.gpu7800xt,
+    },
+    {
+      profileKey: "llm-finetune-starter",
+      profileLabel: "LLM Fine-Tune Starter",
+      buildName: "Low-Power Fine-Tune Lab",
+      targetModel: "7B LoRA + embeddings",
+      ramGb: 64,
+      storageGb: 1000,
+      estimatedPriceEur: 1499,
+      notes: "Cheaper tuning starter for notebooks-to-desktop transition users.",
+      sourceRefs: "GPU data: nvidia.com RTX 4060 Ti 16GB specs; CPU data: intel.com i5-14600K specs.",
+      cpuId: ids.cpui5,
+      gpuId: ids.gpu4060ti16,
+    },
+    {
+      profileKey: "llm-finetune-starter",
+      profileLabel: "LLM Fine-Tune Starter",
+      buildName: "Midrange CUDA Tuning",
+      targetModel: "13B LoRA",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1899,
+      notes: "Balanced setup for repeated experiments and multi-project workflows.",
+      sourceRefs: "GPU data: nvidia.com RTX 4070 SUPER specs; CPU data: intel.com i7-14700K specs.",
+      cpuId: ids.cpui7,
+      gpuId: ids.gpu4070s,
+    },
+    {
+      profileKey: "hybrid-ai-gaming",
+      profileLabel: "Hybrid AI + Gaming",
+      buildName: "eSports + AI Efficiency",
+      targetModel: "13B q4 + high fps 1080p/1440p",
+      ramGb: 32,
+      storageGb: 1000,
+      estimatedPriceEur: 1349,
+      notes: "Entry hybrid machine with low power draw and fast iteration.",
+      sourceRefs: "GPU data: nvidia.com RTX 4060 family specs; CPU data: intel.com i5-14600K specs.",
+      cpuId: ids.cpui5,
+      gpuId: ids.gpu4060ti16,
+    },
+    {
+      profileKey: "hybrid-ai-gaming",
+      profileLabel: "Hybrid AI + Gaming",
+      buildName: "AMD Gaming + Inference",
+      targetModel: "20B q4 + strong raster 1440p",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1799,
+      notes: "Good gaming value and enough VRAM for mid-size local models.",
+      sourceRefs: "GPU data: amd.com RX 7800 XT specs; CPU data: amd.com Ryzen 7800X3D specs.",
+      cpuId: ids.cpu7800x3d,
+      gpuId: ids.gpu7800xt,
+    },
   ];
 
-  const insertStatement = db.prepare(
-    "INSERT OR IGNORE INTO profile_builds (profile_key, profile_label, build_name, target_model, ram_gb, storage_gb, estimated_price_usd, notes, source_refs, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-  );
+  const hasLegacyUsd = hasColumn(db, "profile_builds", "estimated_price_usd");
+  const insertStatement = hasLegacyUsd
+    ? db.prepare(
+        "INSERT INTO profile_builds (profile_key, profile_label, build_name, target_model, ram_gb, storage_gb, estimated_price_eur, estimated_price_usd, notes, source_refs, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(profile_key, build_name) DO UPDATE SET profile_label=excluded.profile_label, target_model=excluded.target_model, ram_gb=excluded.ram_gb, storage_gb=excluded.storage_gb, estimated_price_eur=excluded.estimated_price_eur, estimated_price_usd=excluded.estimated_price_usd, notes=excluded.notes, source_refs=excluded.source_refs, cpu_id=excluded.cpu_id, gpu_id=excluded.gpu_id",
+      )
+    : db.prepare(
+        "INSERT INTO profile_builds (profile_key, profile_label, build_name, target_model, ram_gb, storage_gb, estimated_price_eur, notes, source_refs, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(profile_key, build_name) DO UPDATE SET profile_label=excluded.profile_label, target_model=excluded.target_model, ram_gb=excluded.ram_gb, storage_gb=excluded.storage_gb, estimated_price_eur=excluded.estimated_price_eur, notes=excluded.notes, source_refs=excluded.source_refs, cpu_id=excluded.cpu_id, gpu_id=excluded.gpu_id",
+      );
 
   buildRows.forEach((build) => {
-    insertStatement.run(
-      build.profileKey,
-      build.profileLabel,
-      build.buildName,
-      build.targetModel,
-      build.ramGb,
-      build.storageGb,
-      build.estimatedPriceUsd,
-      build.notes,
-      build.sourceRefs,
-      build.cpuId,
-      build.gpuId,
-    );
+    if (hasLegacyUsd) {
+      insertStatement.run(
+        build.profileKey,
+        build.profileLabel,
+        build.buildName,
+        build.targetModel,
+        build.ramGb,
+        build.storageGb,
+        build.estimatedPriceEur,
+        Math.round(build.estimatedPriceEur / 0.84),
+        build.notes,
+        build.sourceRefs,
+        build.cpuId,
+        build.gpuId,
+      );
+    } else {
+      insertStatement.run(
+        build.profileKey,
+        build.profileLabel,
+        build.buildName,
+        build.targetModel,
+        build.ramGb,
+        build.storageGb,
+        build.estimatedPriceEur,
+        build.notes,
+        build.sourceRefs,
+        build.cpuId,
+        build.gpuId,
+      );
+    }
   });
 }
 
@@ -579,7 +1065,7 @@ function initDatabase(): DatabaseSync {
       architecture TEXT NOT NULL,
       tdp_watts INTEGER NOT NULL,
       ai_score INTEGER NOT NULL,
-      price_usd INTEGER NOT NULL
+      price_eur INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS cpus (
@@ -593,7 +1079,7 @@ function initDatabase(): DatabaseSync {
       socket TEXT NOT NULL,
       tdp_watts INTEGER NOT NULL,
       ai_score INTEGER NOT NULL,
-      price_usd INTEGER NOT NULL
+      price_eur INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS prebuilts (
@@ -601,7 +1087,7 @@ function initDatabase(): DatabaseSync {
       name TEXT NOT NULL,
       vendor TEXT NOT NULL,
       description TEXT NOT NULL,
-      price_usd INTEGER NOT NULL,
+      price_eur INTEGER NOT NULL,
       ram_gb INTEGER NOT NULL,
       storage_gb INTEGER NOT NULL,
       llm_max_model_size TEXT NOT NULL,
@@ -620,7 +1106,7 @@ function initDatabase(): DatabaseSync {
       target_model TEXT NOT NULL,
       ram_gb INTEGER NOT NULL,
       storage_gb INTEGER NOT NULL,
-      estimated_price_usd INTEGER NOT NULL,
+      estimated_price_eur INTEGER NOT NULL,
       notes TEXT NOT NULL,
       source_refs TEXT NOT NULL,
       cpu_id INTEGER NOT NULL,
@@ -656,6 +1142,7 @@ function initDatabase(): DatabaseSync {
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
   `);
 
+  ensureEuroPriceColumns(db);
   seedCatalog(db);
   seedProfileBuilds(db);
   return db;
@@ -683,14 +1170,14 @@ function getUserByEmail(email: string): DbUserRecord | null {
 export function listGpus(): GpuRecord[] {
   const db = getDb();
   return db
-    .prepare("SELECT id, name, brand, vram_gb, architecture, ai_score, price_usd FROM gpus ORDER BY ai_score DESC")
+    .prepare("SELECT id, name, brand, vram_gb, architecture, ai_score, price_eur FROM gpus ORDER BY ai_score DESC")
     .all() as GpuRecord[];
 }
 
 export function listCpus(): CpuRecord[] {
   const db = getDb();
   return db
-    .prepare("SELECT id, name, brand, cores, threads, socket, ai_score, price_usd FROM cpus ORDER BY ai_score DESC")
+    .prepare("SELECT id, name, brand, cores, threads, socket, ai_score, price_eur FROM cpus ORDER BY ai_score DESC")
     .all() as CpuRecord[];
 }
 
@@ -706,14 +1193,14 @@ export function listPrebuilts(): PrebuiltRecord[] {
         p.ram_gb,
         p.storage_gb,
         p.llm_max_model_size,
-        p.price_usd,
+        p.price_eur,
         p.in_stock,
         c.name AS cpu_name,
         g.name AS gpu_name
       FROM prebuilts p
       JOIN cpus c ON c.id = p.cpu_id
       JOIN gpus g ON g.id = p.gpu_id
-      ORDER BY p.price_usd DESC
+      ORDER BY p.price_eur DESC
     `)
     .all() as PrebuiltRecord[];
 }
@@ -730,7 +1217,7 @@ export function listProfileBuilds(): ProfileBuildRecord[] {
         pb.target_model,
         pb.ram_gb,
         pb.storage_gb,
-        pb.estimated_price_usd,
+        pb.estimated_price_eur,
         pb.notes,
         pb.source_refs,
         c.name AS cpu_name,
@@ -738,7 +1225,7 @@ export function listProfileBuilds(): ProfileBuildRecord[] {
       FROM profile_builds pb
       JOIN cpus c ON c.id = pb.cpu_id
       JOIN gpus g ON g.id = pb.gpu_id
-      ORDER BY pb.profile_key ASC, pb.estimated_price_usd ASC
+      ORDER BY pb.profile_key ASC, pb.estimated_price_eur ASC
     `)
     .all() as ProfileBuildRecord[];
 }

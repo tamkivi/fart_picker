@@ -41,7 +41,7 @@ A dedicated mode that evaluates builds for LLM readiness:
 
 ### 5. Budget-Aware Optimization
 - User-defined budget with intelligent tradeoff suggestions
-- "Performance per dollar" scoring for AI workloads
+- "Performance per euro" scoring for AI workloads
 - Upgrade path suggestions (what to buy now vs later)
 
 ### 6. Explainable Recommendations
@@ -53,7 +53,7 @@ Each suggested part includes plain-language rationale:
 
 ## Example User Flow
 1. User selects "Local LLM Inference" profile.
-2. User sets budget (e.g., $1,800).
+2. User sets budget (e.g., €1,800).
 3. Website proposes a full compatible build.
 4. LLM Capability Mode reports likely supported model sizes and speed expectations.
 5. User swaps parts and sees live compatibility + capability updates.
@@ -90,6 +90,7 @@ Then open `http://localhost:3000`.
 - Auto-seeds starter records on first run
 - Auto-seeds `profile_builds` options for each AI build profile
 - Profile build recommendations are seeded from online vendor data (NVIDIA, AMD, Intel specs/pricing)
+- Prices are stored and displayed in EUR
 
 ## Account System
 - Adds SQLite-backed `users` and `sessions` tables

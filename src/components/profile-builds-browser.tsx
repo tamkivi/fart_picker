@@ -16,7 +16,7 @@ type ProfileBuild = {
   target_model: string;
   ram_gb: number;
   storage_gb: number;
-  estimated_price_usd: number;
+  estimated_price_eur: number;
   notes: string;
   source_refs: string;
   cpu_name: string;
@@ -90,7 +90,7 @@ export function ProfileBuildsBrowser({
                 </p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">Model target: {build.target_model}</p>
                 <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">Source: {build.source_refs}</p>
-                <p className="mt-3 text-base font-semibold">Est. ${build.estimated_price_usd}</p>
+                <p className="mt-3 text-base font-semibold">Est. €{build.estimated_price_eur}</p>
               </article>
             ))}
           </div>
