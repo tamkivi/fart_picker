@@ -15,6 +15,17 @@ type MeResponse = {
 
 type AuthMode = "login" | "register";
 
+async function parseApiMessage(response: Response): Promise<string | null> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    const data = (await response.json().catch(() => null)) as { message?: string } | null;
+    return data?.message ?? null;
+  }
+
+  const text = await response.text().catch(() => "");
+  return text.trim() ? text.slice(0, 200) : null;
+}
+
 export function AuthPanel() {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [email, setEmail] = useState("");
@@ -98,9 +109,9 @@ export function AuthPanel() {
         }),
       });
 
-      const data = (await response.json()) as { message?: string };
       if (!response.ok) {
-        setMessage(data.message ?? "Registration failed.");
+        const messageFromApi = await parseApiMessage(response);
+        setMessage(messageFromApi ?? "Registration failed.");
         return;
       }
 
@@ -126,9 +137,9 @@ export function AuthPanel() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = (await response.json()) as { message?: string };
       if (!response.ok) {
-        setMessage(data.message ?? "Login failed.");
+        const messageFromApi = await parseApiMessage(response);
+        setMessage(messageFromApi ?? "Login failed.");
         return;
       }
 
