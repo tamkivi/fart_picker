@@ -162,169 +162,185 @@ export default async function Home() {
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "350ms" }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-3xl font-semibold">GPU Catalog</h3>
-              <span className="label-pill">{gpus.length} listed</span>
-            </div>
-            <div className="space-y-3">
-              {gpus.map((gpu) => (
-                <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
-                  <p className="font-semibold">{gpu.name}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {gpu.brand} | {gpu.vramGb}GB VRAM | {gpu.architecture} | AI {gpu.aiScore}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{gpu.preorderPriceEur}</p>
-                </div>
-              ))}
-            </div>
+            <details open>
+              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+                <h3 className="font-display text-3xl font-semibold">GPU Catalog</h3>
+                <span className="label-pill">{gpus.length} listed</span>
+              </summary>
+              <div className="space-y-3">
+                {gpus.map((gpu) => (
+                  <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                    <p className="font-semibold">{gpu.name}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                      {gpu.brand} | {gpu.vramGb}GB VRAM | {gpu.architecture} | AI {gpu.aiScore}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{gpu.preorderPriceEur}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "450ms" }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-3xl font-semibold">CPU Catalog</h3>
-              <span className="label-pill">{cpus.length} listed</span>
-            </div>
-            <div className="space-y-3">
-              {cpus.map((cpu) => (
-                <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
-                  <p className="font-semibold">{cpu.name}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.aiScore}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cpu.preorderPriceEur}</p>
-                </div>
-              ))}
-            </div>
+            <details open>
+              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+                <h3 className="font-display text-3xl font-semibold">CPU Catalog</h3>
+                <span className="label-pill">{cpus.length} listed</span>
+              </summary>
+              <div className="space-y-3">
+                {cpus.map((cpu) => (
+                  <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                    <p className="font-semibold">{cpu.name}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                      {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.aiScore}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cpu.preorderPriceEur}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "620ms" }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-3xl font-semibold">RAM Kits</h3>
-              <span className="label-pill">{ramKits.length} listed</span>
-            </div>
-            <div className="space-y-3">
-              {ramKits.map((ramKit) => (
-                <div key={ramKit.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
-                  <p className="font-semibold">{ramKit.name}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {ramKit.modules} | {ramKit.ddrGen} {ramKit.speedMtS} | {ramKit.casLatency}
-                  </p>
-                  <p className="font-mono text-xs text-[color:var(--muted)]">Profiles: {ramKit.profileSupport}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{ramKit.preorderPriceEur}</p>
-                </div>
-              ))}
-            </div>
+            <details open>
+              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+                <h3 className="font-display text-3xl font-semibold">RAM Kits</h3>
+                <span className="label-pill">{ramKits.length} listed</span>
+              </summary>
+              <div className="space-y-3">
+                {ramKits.map((ramKit) => (
+                  <div key={ramKit.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                    <p className="font-semibold">{ramKit.name}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                      {ramKit.modules} | {ramKit.ddrGen} {ramKit.speedMtS} | {ramKit.casLatency}
+                    </p>
+                    <p className="font-mono text-xs text-[color:var(--muted)]">Profiles: {ramKit.profileSupport}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{ramKit.preorderPriceEur}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "690ms" }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-3xl font-semibold">Motherboards</h3>
-              <span className="label-pill">{motherboards.length} listed</span>
-            </div>
-            <div className="space-y-3">
-              {motherboards.map((motherboard) => (
-                <div key={motherboard.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
-                  <p className="font-semibold">{motherboard.name}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {motherboard.socket} | {motherboard.chipset} | {motherboard.memorySupport}
-                  </p>
-                  <p className="font-mono text-xs text-[color:var(--muted)]">
-                    Max memory: {motherboard.maxMemoryGb}GB | PCIe Gen5: {motherboard.pcieGen5Support ? "Yes" : "No"}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{motherboard.preorderPriceEur}</p>
-                </div>
-              ))}
-            </div>
+            <details open>
+              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+                <h3 className="font-display text-3xl font-semibold">Motherboards</h3>
+                <span className="label-pill">{motherboards.length} listed</span>
+              </summary>
+              <div className="space-y-3">
+                {motherboards.map((motherboard) => (
+                  <div key={motherboard.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                    <p className="font-semibold">{motherboard.name}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                      {motherboard.socket} | {motherboard.chipset} | {motherboard.memorySupport}
+                    </p>
+                    <p className="font-mono text-xs text-[color:var(--muted)]">
+                      Max memory: {motherboard.maxMemoryGb}GB | PCIe Gen5: {motherboard.pcieGen5Support ? "Yes" : "No"}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{motherboard.preorderPriceEur}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "760ms" }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-3xl font-semibold">Power Supplies</h3>
-              <span className="label-pill">{powerSupplies.length} listed</span>
-            </div>
-            <div className="space-y-3">
-              {powerSupplies.map((psu) => (
-                <div key={psu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
-                  <p className="font-semibold">{psu.name}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {psu.wattage}W | {psu.efficiencyRating} | {psu.atxStandard}
-                  </p>
-                  <p className="font-mono text-xs text-[color:var(--muted)]">
-                    {psu.modularity} | 12V-2x6/PCIe5: {psu.pcie5Support ? "Supported" : "No"}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{psu.preorderPriceEur}</p>
-                </div>
-              ))}
-            </div>
+            <details open>
+              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+                <h3 className="font-display text-3xl font-semibold">Power Supplies</h3>
+                <span className="label-pill">{powerSupplies.length} listed</span>
+              </summary>
+              <div className="space-y-3">
+                {powerSupplies.map((psu) => (
+                  <div key={psu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                    <p className="font-semibold">{psu.name}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                      {psu.wattage}W | {psu.efficiencyRating} | {psu.atxStandard}
+                    </p>
+                    <p className="font-mono text-xs text-[color:var(--muted)]">
+                      {psu.modularity} | 12V-2x6/PCIe5: {psu.pcie5Support ? "Supported" : "No"}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{psu.preorderPriceEur}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "830ms" }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-3xl font-semibold">Cases</h3>
-              <span className="label-pill">{cases.length} listed</span>
-            </div>
-            <div className="space-y-3">
-              {cases.map((pcCase) => (
-                <div key={pcCase.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
-                  <p className="font-semibold">{pcCase.name}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {pcCase.formFactor} | Max GPU: {pcCase.maxGpuMm}mm
-                  </p>
-                  <p className="font-mono text-xs text-[color:var(--muted)]">
-                    Radiator: {pcCase.radiatorSupport} | Fans: {pcCase.includedFans}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{pcCase.preorderPriceEur}</p>
-                </div>
-              ))}
-            </div>
+            <details open>
+              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+                <h3 className="font-display text-3xl font-semibold">Cases</h3>
+                <span className="label-pill">{cases.length} listed</span>
+              </summary>
+              <div className="space-y-3">
+                {cases.map((pcCase) => (
+                  <div key={pcCase.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                    <p className="font-semibold">{pcCase.name}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                      {pcCase.formFactor} | Max GPU: {pcCase.maxGpuMm}mm
+                    </p>
+                    <p className="font-mono text-xs text-[color:var(--muted)]">
+                      Radiator: {pcCase.radiatorSupport} | Fans: {pcCase.includedFans}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{pcCase.preorderPriceEur}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "970ms" }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-3xl font-semibold">Storage Drives</h3>
-              <span className="label-pill">{storageDrives.length} listed</span>
-            </div>
-            <div className="space-y-3">
-              {storageDrives.map((drive) => (
-                <div key={drive.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
-                  <p className="font-semibold">{drive.name}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {drive.driveType} | {drive.interface} | {drive.capacityGb}GB
-                  </p>
-                  <p className="font-mono text-xs text-[color:var(--muted)]">
-                    Read: {drive.seqReadMbS} MB/s | TBW: {drive.enduranceTbw === 0 ? "n/a" : drive.enduranceTbw}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{drive.preorderPriceEur}</p>
-                </div>
-              ))}
-            </div>
+            <details open>
+              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+                <h3 className="font-display text-3xl font-semibold">Storage Drives</h3>
+                <span className="label-pill">{storageDrives.length} listed</span>
+              </summary>
+              <div className="space-y-3">
+                {storageDrives.map((drive) => (
+                  <div key={drive.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                    <p className="font-semibold">{drive.name}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                      {drive.driveType} | {drive.interface} | {drive.capacityGb}GB
+                    </p>
+                    <p className="font-mono text-xs text-[color:var(--muted)]">
+                      Read: {drive.seqReadMbS} MB/s | TBW: {drive.enduranceTbw === 0 ? "n/a" : drive.enduranceTbw}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{drive.preorderPriceEur}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "1040ms" }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-3xl font-semibold">CPU Coolers</h3>
-              <span className="label-pill">{cpuCoolers.length} listed</span>
-            </div>
-            <div className="space-y-3">
-              {cpuCoolers.map((cooler) => (
-                <div key={cooler.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
-                  <p className="font-semibold">{cooler.name}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-                    {cooler.coolerType} | Size: {cooler.radiatorOrHeightMm}mm | Max TDP: {cooler.maxTdpW}W
-                  </p>
-                  <p className="font-mono text-xs text-[color:var(--muted)]">
-                    Sockets: {cooler.socketSupport} | Noise: {cooler.noiseDb}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cooler.preorderPriceEur}</p>
-                </div>
-              ))}
-            </div>
+            <details open>
+              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+                <h3 className="font-display text-3xl font-semibold">CPU Coolers</h3>
+                <span className="label-pill">{cpuCoolers.length} listed</span>
+              </summary>
+              <div className="space-y-3">
+                {cpuCoolers.map((cooler) => (
+                  <div key={cooler.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                    <p className="font-semibold">{cooler.name}</p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                      {cooler.coolerType} | Size: {cooler.radiatorOrHeightMm}mm | Max TDP: {cooler.maxTdpW}W
+                    </p>
+                    <p className="font-mono text-xs text-[color:var(--muted)]">
+                      Sockets: {cooler.socketSupport} | Noise: {cooler.noiseDb}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cooler.preorderPriceEur}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
         </div>
 
