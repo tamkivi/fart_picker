@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 type AuthUser = {
@@ -181,6 +182,16 @@ export function AuthPanel() {
               <p className="font-semibold">Signed in</p>
               <p className="mt-1 text-sm text-[color:var(--muted)]">{me.user.email}</p>
               <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Role: {me.user.role}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Link href="/orders" className="rounded-md bg-[color:var(--panel)] px-3 py-1 text-xs font-semibold">
+                  My Orders
+                </Link>
+                {me.user.role === "ADMIN" ? (
+                  <Link href="/admin/orders" className="rounded-md bg-[color:var(--panel)] px-3 py-1 text-xs font-semibold">
+                    Admin Orders
+                  </Link>
+                ) : null}
+              </div>
               <button
                 className="mt-3 rounded-md bg-[color:var(--accent-2)] px-4 py-2 text-sm font-semibold text-white"
                 onClick={handleLogout}

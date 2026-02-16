@@ -100,6 +100,40 @@ export type OrderRecord = {
 
 type OrderRow = OrderRecord;
 
+export type UserOrderListItem = {
+  id: number;
+  build_name: string;
+  amount_eur_cents: number;
+  currency: string;
+  status: OrderStatus;
+  stripe_checkout_session_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AdminOrderListItem = {
+  id: number;
+  user_id: number;
+  user_email: string;
+  profile_build_id: number;
+  build_name: string;
+  amount_eur_cents: number;
+  currency: string;
+  status: OrderStatus;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PaidOrderEmailPayload = {
+  orderId: number;
+  customerEmail: string;
+  buildName: string;
+  amountEurCents: number;
+  createdAt: string;
+};
+
 const globalForCatalogDb = globalThis as unknown as {
   catalogDb: DatabaseSync | undefined;
 };
@@ -1745,6 +1779,76 @@ export function markOrderCheckoutCreationFailed(orderId: number): void {
       WHERE id = ?
     `,
   ).run(orderId);
+}
+
+export function listOrdersForUser(userId: number): UserOrderListItem[] {
+  const db = getDb();
+  return db
+    .prepare(
+      `
+      SELECT
+        id,
+        build_name,
+        amount_eur_cents,
+        currency,
+        status,
+        stripe_checkout_session_id,
+        created_at,
+        updated_at
+      FROM orders
+      WHERE user_id = ?
+      ORDER BY id DESC
+    `,
+    )
+    .all(userId) as UserOrderListItem[];
+}
+
+export function listAllOrdersForAdmin(): AdminOrderListItem[] {
+  const db = getDb();
+  return db
+    .prepare(
+      `
+      SELECT
+        o.id,
+        o.user_id,
+        u.email AS user_email,
+        o.profile_build_id,
+        o.build_name,
+        o.amount_eur_cents,
+        o.currency,
+        o.status,
+        o.stripe_checkout_session_id,
+        o.stripe_payment_intent_id,
+        o.created_at,
+        o.updated_at
+      FROM orders o
+      JOIN users u ON u.id = o.user_id
+      ORDER BY o.id DESC
+    `,
+    )
+    .all() as AdminOrderListItem[];
+}
+
+export function getPaidOrderEmailPayloadByCheckoutSession(checkoutSessionId: string): PaidOrderEmailPayload | null {
+  const db = getDb();
+  const row = db
+    .prepare(
+      `
+      SELECT
+        o.id AS orderId,
+        u.email AS customerEmail,
+        o.build_name AS buildName,
+        o.amount_eur_cents AS amountEurCents,
+        o.created_at AS createdAt
+      FROM orders o
+      JOIN users u ON u.id = o.user_id
+      WHERE o.stripe_checkout_session_id = ?
+      LIMIT 1
+    `,
+    )
+    .get(checkoutSessionId);
+
+  return (row as PaidOrderEmailPayload | undefined) ?? null;
 }
 
 export function getAdminEmail(): string {

@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import {
+  getPaidOrderEmailPayloadByCheckoutSession,
   getOrderById,
   markOrderCanceledFromCheckoutSession,
   markOrderFailedFromCheckoutSession,
   markOrderPaidFromCheckoutSession,
   recordStripeWebhookEvent,
 } from "@/lib/catalog-db";
+import { sendPaymentConfirmationEmail } from "@/lib/payment-email";
 import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -31,38 +33,53 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, duplicate: true });
     }
 
-    const handleCheckoutSessionEvent = (session: Stripe.Checkout.Session): boolean => {
+    const handleCheckoutSessionEvent = (session: Stripe.Checkout.Session) => {
       const orderIdRaw = session.metadata?.order_id;
       const orderId = Number.parseInt(orderIdRaw ?? "", 10);
       if (!Number.isFinite(orderId)) {
-        return false;
+        return null;
       }
 
       const order = getOrderById(orderId);
       if (!order) {
-        return false;
+        return null;
       }
 
       if (order.stripe_checkout_session_id !== session.id) {
-        return false;
+        return null;
       }
 
       if (typeof session.amount_total === "number" && session.amount_total !== order.amount_eur_cents) {
-        return false;
+        return null;
       }
 
-      return true;
+      return order;
     };
 
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const session = event.data.object as Stripe.Checkout.Session;
-      if (!handleCheckoutSessionEvent(session)) {
+      const order = handleCheckoutSessionEvent(session);
+      if (!order) {
         return NextResponse.json({ message: "Order/session verification failed." }, { status: 400 });
       }
-      markOrderPaidFromCheckoutSession({
-        checkoutSessionId: session.id,
-        paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
-      });
+
+      if (order.status !== "PAID") {
+        markOrderPaidFromCheckoutSession({
+          checkoutSessionId: session.id,
+          paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
+        });
+
+        const emailPayload = getPaidOrderEmailPayloadByCheckoutSession(session.id);
+        if (emailPayload) {
+          await sendPaymentConfirmationEmail({
+            to: emailPayload.customerEmail,
+            orderId: emailPayload.orderId,
+            buildName: emailPayload.buildName,
+            amountEurCents: emailPayload.amountEurCents,
+            createdAt: emailPayload.createdAt,
+          }).catch(() => null);
+        }
+      }
     }
 
     if (event.type === "checkout.session.expired") {
