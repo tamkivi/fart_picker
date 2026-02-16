@@ -49,6 +49,11 @@ export type ProfileBuildRecord = {
   ram_gb: number;
   storage_gb: number;
   estimated_price_eur: number;
+  best_for: string;
+  estimated_tokens_per_sec: string;
+  estimated_system_power_w: number;
+  recommended_psu_w: number;
+  cooling_profile: string;
   notes: string;
   source_refs: string;
   cpu_name: string;
@@ -167,6 +172,24 @@ function ensureEuroPriceColumns(db: DatabaseSync): void {
   }
   if (hasColumn(db, "profile_builds", "estimated_price_usd")) {
     db.exec("UPDATE profile_builds SET estimated_price_eur = COALESCE(estimated_price_eur, ROUND(estimated_price_usd * 0.84));");
+  }
+}
+
+function ensureProfileBuildDetailColumns(db: DatabaseSync): void {
+  if (!hasColumn(db, "profile_builds", "best_for")) {
+    db.exec("ALTER TABLE profile_builds ADD COLUMN best_for TEXT DEFAULT 'General AI workloads';");
+  }
+  if (!hasColumn(db, "profile_builds", "estimated_tokens_per_sec")) {
+    db.exec("ALTER TABLE profile_builds ADD COLUMN estimated_tokens_per_sec TEXT DEFAULT 'n/a';");
+  }
+  if (!hasColumn(db, "profile_builds", "estimated_system_power_w")) {
+    db.exec("ALTER TABLE profile_builds ADD COLUMN estimated_system_power_w INTEGER DEFAULT 450;");
+  }
+  if (!hasColumn(db, "profile_builds", "recommended_psu_w")) {
+    db.exec("ALTER TABLE profile_builds ADD COLUMN recommended_psu_w INTEGER DEFAULT 750;");
+  }
+  if (!hasColumn(db, "profile_builds", "cooling_profile")) {
+    db.exec("ALTER TABLE profile_builds ADD COLUMN cooling_profile TEXT DEFAULT 'Balanced air cooling';");
   }
 }
 
@@ -811,6 +834,11 @@ function seedProfileBuilds(db: DatabaseSync): void {
     ramGb: number;
     storageGb: number;
     estimatedPriceEur: number;
+    bestFor?: string;
+    estimatedTokensPerSec?: string;
+    estimatedSystemPowerW?: number;
+    recommendedPsuW?: number;
+    coolingProfile?: string;
     notes: string;
     sourceRefs: string;
     cpuId: number;
@@ -1018,16 +1046,57 @@ function seedProfileBuilds(db: DatabaseSync): void {
     },
   ];
 
+  function deriveBuildDetails(build: (typeof buildRows)[number]) {
+    if (build.estimatedPriceEur >= 2800) {
+      return {
+        bestFor: build.bestFor ?? "Large local model sessions and workstation-grade multitasking",
+        estimatedTokensPerSec: build.estimatedTokensPerSec ?? "13B q4: 55-85 tok/s | 34B q4: 18-30 tok/s",
+        estimatedSystemPowerW: build.estimatedSystemPowerW ?? 760,
+        recommendedPsuW: build.recommendedPsuW ?? 1000,
+        coolingProfile: build.coolingProfile ?? "Premium 360mm AIO + high airflow case",
+      };
+    }
+
+    if (build.estimatedPriceEur >= 2000) {
+      return {
+        bestFor: build.bestFor ?? "Daily AI development and strong local inference throughput",
+        estimatedTokensPerSec: build.estimatedTokensPerSec ?? "13B q4: 40-65 tok/s | 34B q4: 12-22 tok/s",
+        estimatedSystemPowerW: build.estimatedSystemPowerW ?? 620,
+        recommendedPsuW: build.recommendedPsuW ?? 850,
+        coolingProfile: build.coolingProfile ?? "Dual-tower air or 280mm AIO",
+      };
+    }
+
+    if (build.estimatedPriceEur >= 1600) {
+      return {
+        bestFor: build.bestFor ?? "Midrange local inference and mixed creator workloads",
+        estimatedTokensPerSec: build.estimatedTokensPerSec ?? "13B q4: 28-48 tok/s | 34B q4: 8-15 tok/s",
+        estimatedSystemPowerW: build.estimatedSystemPowerW ?? 520,
+        recommendedPsuW: build.recommendedPsuW ?? 750,
+        coolingProfile: build.coolingProfile ?? "Balanced airflow with quality air cooler",
+      };
+    }
+
+    return {
+      bestFor: build.bestFor ?? "Entry local AI experimentation and fast iteration",
+      estimatedTokensPerSec: build.estimatedTokensPerSec ?? "7B q4: 40-70 tok/s | 13B q4: 20-35 tok/s",
+      estimatedSystemPowerW: build.estimatedSystemPowerW ?? 420,
+      recommendedPsuW: build.recommendedPsuW ?? 650,
+      coolingProfile: build.coolingProfile ?? "Standard tower air cooling",
+    };
+  }
+
   const hasLegacyUsd = hasColumn(db, "profile_builds", "estimated_price_usd");
   const insertStatement = hasLegacyUsd
     ? db.prepare(
-        "INSERT INTO profile_builds (profile_key, profile_label, build_name, target_model, ram_gb, storage_gb, estimated_price_eur, estimated_price_usd, notes, source_refs, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(profile_key, build_name) DO UPDATE SET profile_label=excluded.profile_label, target_model=excluded.target_model, ram_gb=excluded.ram_gb, storage_gb=excluded.storage_gb, estimated_price_eur=excluded.estimated_price_eur, estimated_price_usd=excluded.estimated_price_usd, notes=excluded.notes, source_refs=excluded.source_refs, cpu_id=excluded.cpu_id, gpu_id=excluded.gpu_id",
+        "INSERT INTO profile_builds (profile_key, profile_label, build_name, target_model, ram_gb, storage_gb, estimated_price_eur, estimated_price_usd, best_for, estimated_tokens_per_sec, estimated_system_power_w, recommended_psu_w, cooling_profile, notes, source_refs, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(profile_key, build_name) DO UPDATE SET profile_label=excluded.profile_label, target_model=excluded.target_model, ram_gb=excluded.ram_gb, storage_gb=excluded.storage_gb, estimated_price_eur=excluded.estimated_price_eur, estimated_price_usd=excluded.estimated_price_usd, best_for=excluded.best_for, estimated_tokens_per_sec=excluded.estimated_tokens_per_sec, estimated_system_power_w=excluded.estimated_system_power_w, recommended_psu_w=excluded.recommended_psu_w, cooling_profile=excluded.cooling_profile, notes=excluded.notes, source_refs=excluded.source_refs, cpu_id=excluded.cpu_id, gpu_id=excluded.gpu_id",
       )
     : db.prepare(
-        "INSERT INTO profile_builds (profile_key, profile_label, build_name, target_model, ram_gb, storage_gb, estimated_price_eur, notes, source_refs, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(profile_key, build_name) DO UPDATE SET profile_label=excluded.profile_label, target_model=excluded.target_model, ram_gb=excluded.ram_gb, storage_gb=excluded.storage_gb, estimated_price_eur=excluded.estimated_price_eur, notes=excluded.notes, source_refs=excluded.source_refs, cpu_id=excluded.cpu_id, gpu_id=excluded.gpu_id",
+        "INSERT INTO profile_builds (profile_key, profile_label, build_name, target_model, ram_gb, storage_gb, estimated_price_eur, best_for, estimated_tokens_per_sec, estimated_system_power_w, recommended_psu_w, cooling_profile, notes, source_refs, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(profile_key, build_name) DO UPDATE SET profile_label=excluded.profile_label, target_model=excluded.target_model, ram_gb=excluded.ram_gb, storage_gb=excluded.storage_gb, estimated_price_eur=excluded.estimated_price_eur, best_for=excluded.best_for, estimated_tokens_per_sec=excluded.estimated_tokens_per_sec, estimated_system_power_w=excluded.estimated_system_power_w, recommended_psu_w=excluded.recommended_psu_w, cooling_profile=excluded.cooling_profile, notes=excluded.notes, source_refs=excluded.source_refs, cpu_id=excluded.cpu_id, gpu_id=excluded.gpu_id",
       );
 
   buildRows.forEach((build) => {
+    const details = deriveBuildDetails(build);
     if (hasLegacyUsd) {
       insertStatement.run(
         build.profileKey,
@@ -1038,6 +1107,11 @@ function seedProfileBuilds(db: DatabaseSync): void {
         build.storageGb,
         build.estimatedPriceEur,
         Math.round(build.estimatedPriceEur / 0.84),
+        details.bestFor,
+        details.estimatedTokensPerSec,
+        details.estimatedSystemPowerW,
+        details.recommendedPsuW,
+        details.coolingProfile,
         build.notes,
         build.sourceRefs,
         build.cpuId,
@@ -1052,6 +1126,11 @@ function seedProfileBuilds(db: DatabaseSync): void {
         build.ramGb,
         build.storageGb,
         build.estimatedPriceEur,
+        details.bestFor,
+        details.estimatedTokensPerSec,
+        details.estimatedSystemPowerW,
+        details.recommendedPsuW,
+        details.coolingProfile,
         build.notes,
         build.sourceRefs,
         build.cpuId,
@@ -1119,6 +1198,11 @@ function initDatabase(): DatabaseSync {
       ram_gb INTEGER NOT NULL,
       storage_gb INTEGER NOT NULL,
       estimated_price_eur INTEGER NOT NULL,
+      best_for TEXT NOT NULL DEFAULT 'General AI workloads',
+      estimated_tokens_per_sec TEXT NOT NULL DEFAULT 'n/a',
+      estimated_system_power_w INTEGER NOT NULL DEFAULT 450,
+      recommended_psu_w INTEGER NOT NULL DEFAULT 750,
+      cooling_profile TEXT NOT NULL DEFAULT 'Balanced air cooling',
       notes TEXT NOT NULL,
       source_refs TEXT NOT NULL,
       cpu_id INTEGER NOT NULL,
@@ -1155,6 +1239,7 @@ function initDatabase(): DatabaseSync {
   `);
 
   ensureEuroPriceColumns(db);
+  ensureProfileBuildDetailColumns(db);
   seedCatalog(db);
   seedProfileBuilds(db);
   return db;
@@ -1230,6 +1315,11 @@ export function listProfileBuilds(): ProfileBuildRecord[] {
         pb.ram_gb,
         pb.storage_gb,
         pb.estimated_price_eur,
+        pb.best_for,
+        pb.estimated_tokens_per_sec,
+        pb.estimated_system_power_w,
+        pb.recommended_psu_w,
+        pb.cooling_profile,
         pb.notes,
         pb.source_refs,
         c.name AS cpu_name,
