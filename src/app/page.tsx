@@ -11,6 +11,8 @@ export const revalidate = 3600;
 export default async function Home() {
   const lang = await getRequestLanguage();
   const copy = {
+    headingLead: lang === "et" ? "Vali AI-valmis PC komponendid koos" : "Pick AI-ready PC parts with",
+    headingAccent: lang === "et" ? "LLM võimekusreziimiga" : "LLM capability mode",
     preorderDescription:
       lang === "et"
         ? "See on ettetellimuse sait. Iga tellimus ehitatakse, komplekteeritakse ja seadistatakse täielikult pärast ostu vastavalt valitud ehitusprofiilile."
@@ -95,8 +97,8 @@ export default async function Home() {
             </div>
           </div>
           <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
-            Pick AI-ready PC parts with
-            <span className="ml-2 text-[color:var(--accent)]">LLM capability mode</span>
+            {copy.headingLead}
+            <span className="ml-2 text-[color:var(--accent)]">{copy.headingAccent}</span>
           </h1>
           <p className="mt-4 max-w-3xl text-lg text-[color:var(--muted)]">
             {copy.preorderDescription}
