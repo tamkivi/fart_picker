@@ -160,10 +160,10 @@ export default async function Home() {
           </div>
         </section>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
+        <div className="mt-8 grid items-start gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "350ms" }}>
-            <details open>
-              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <details className="catalog-dropdown">
+              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">GPU Catalog</h3>
                 <span className="label-pill">{gpus.length} listed</span>
               </summary>
@@ -182,8 +182,8 @@ export default async function Home() {
           </section>
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "450ms" }}>
-            <details open>
-              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <details className="catalog-dropdown">
+              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">CPU Catalog</h3>
                 <span className="label-pill">{cpus.length} listed</span>
               </summary>
@@ -202,10 +202,10 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <div className="mt-6 grid items-start gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "620ms" }}>
-            <details open>
-              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <details className="catalog-dropdown">
+              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">RAM Kits</h3>
                 <span className="label-pill">{ramKits.length} listed</span>
               </summary>
@@ -225,8 +225,8 @@ export default async function Home() {
           </section>
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "690ms" }}>
-            <details open>
-              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <details className="catalog-dropdown">
+              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Motherboards</h3>
                 <span className="label-pill">{motherboards.length} listed</span>
               </summary>
@@ -248,10 +248,10 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <div className="mt-6 grid items-start gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "760ms" }}>
-            <details open>
-              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <details className="catalog-dropdown">
+              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Power Supplies</h3>
                 <span className="label-pill">{powerSupplies.length} listed</span>
               </summary>
@@ -273,8 +273,8 @@ export default async function Home() {
           </section>
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "830ms" }}>
-            <details open>
-              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <details className="catalog-dropdown">
+              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Cases</h3>
                 <span className="label-pill">{cases.length} listed</span>
               </summary>
@@ -296,10 +296,10 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <div className="mt-6 grid items-start gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "970ms" }}>
-            <details open>
-              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <details className="catalog-dropdown">
+              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Storage Drives</h3>
                 <span className="label-pill">{storageDrives.length} listed</span>
               </summary>
@@ -321,8 +321,8 @@ export default async function Home() {
           </section>
 
           <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "1040ms" }}>
-            <details open>
-              <summary className="mb-4 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <details className="catalog-dropdown">
+              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">CPU Coolers</h3>
                 <span className="label-pill">{cpuCoolers.length} listed</span>
               </summary>

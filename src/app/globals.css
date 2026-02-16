@@ -72,6 +72,17 @@ body {
   background: #1e2836;
 }
 
+.catalog-summary::after {
+  content: "▸";
+  color: var(--muted);
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+.catalog-dropdown[open] > .catalog-summary::after {
+  content: "▾";
+}
+
 .stagger-in {
   animation: stagger-in 500ms ease-out both;
 }
