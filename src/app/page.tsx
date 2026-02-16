@@ -47,7 +47,6 @@ export default async function Home() {
   const {
     gpus,
     cpus,
-    prebuilts,
     ramKits,
     powerSupplies,
     cases,
@@ -109,32 +108,6 @@ export default async function Home() {
         </header>
 
         <ProfileBuildsBrowser profiles={profileCards} builds={browserBuilds} />
-
-        <section className="wireframe-panel mt-6 p-6 stagger-in" style={{ animationDelay: "550ms" }}>
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-3xl font-semibold">Prebuilt Catalog</h3>
-            <span className="label-pill">{prebuilts.length} listed</span>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {prebuilts.map((prebuilt) => (
-              <article key={prebuilt.id} className="rounded-lg border border-[color:var(--panel-border)] p-4">
-                <p className="font-display text-xl font-semibold">{prebuilt.name}</p>
-                <p className="mt-1 text-sm text-[color:var(--muted)]">{prebuilt.vendor}</p>
-                <p className="mt-2 text-sm text-[color:var(--muted)]">{prebuilt.description}</p>
-                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">CPU: {prebuilt.cpuName}</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">GPU: {prebuilt.gpuName}</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">
-                  RAM: {prebuilt.ramGb}GB | Storage: {prebuilt.storageGb}GB
-                </p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">LLM fit: {prebuilt.llmMaxModelSize}</p>
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="font-semibold">Preorder €{prebuilt.preorderPriceEur}</span>
-                  <span className="label-pill">{prebuilt.inStock ? "In Stock" : "Out of Stock"}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
 
         <section className="wireframe-panel mt-6 p-6 stagger-in" style={{ animationDelay: "900ms" }}>
           <div className="mb-4 flex items-center justify-between">

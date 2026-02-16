@@ -598,95 +598,6 @@ function ensureCpu(
   return inserted.id;
 }
 
-function ensurePrebuilt(
-  db: DatabaseSync,
-  prebuilt: {
-    name: string;
-    vendor: string;
-    description: string;
-    priceEur: number;
-    ramGb: number;
-    storageGb: number;
-    llmMaxModelSize: string;
-    inStock: number;
-    cpuId: number;
-    gpuId: number;
-  },
-): void {
-  const hasLegacyUsd = hasColumn(db, "prebuilts", "price_usd");
-  const existing = db.prepare("SELECT id FROM prebuilts WHERE name = ? LIMIT 1").get(prebuilt.name) as
-    | { id: number }
-    | undefined;
-  if (existing) {
-    if (hasLegacyUsd) {
-      db.prepare(
-        "UPDATE prebuilts SET vendor = ?, description = ?, price_eur = ?, price_usd = ?, ram_gb = ?, storage_gb = ?, llm_max_model_size = ?, in_stock = ?, cpu_id = ?, gpu_id = ? WHERE id = ?",
-      ).run(
-        prebuilt.vendor,
-        prebuilt.description,
-        prebuilt.priceEur,
-        Math.round(prebuilt.priceEur / 0.84),
-        prebuilt.ramGb,
-        prebuilt.storageGb,
-        prebuilt.llmMaxModelSize,
-        prebuilt.inStock,
-        prebuilt.cpuId,
-        prebuilt.gpuId,
-        existing.id,
-      );
-    } else {
-      db.prepare(
-        "UPDATE prebuilts SET vendor = ?, description = ?, price_eur = ?, ram_gb = ?, storage_gb = ?, llm_max_model_size = ?, in_stock = ?, cpu_id = ?, gpu_id = ? WHERE id = ?",
-      ).run(
-        prebuilt.vendor,
-        prebuilt.description,
-        prebuilt.priceEur,
-        prebuilt.ramGb,
-        prebuilt.storageGb,
-        prebuilt.llmMaxModelSize,
-        prebuilt.inStock,
-        prebuilt.cpuId,
-        prebuilt.gpuId,
-        existing.id,
-      );
-    }
-    return;
-  }
-
-  if (hasLegacyUsd) {
-    db.prepare(
-      "INSERT INTO prebuilts (name, vendor, description, price_eur, price_usd, ram_gb, storage_gb, llm_max_model_size, in_stock, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(
-      prebuilt.name,
-      prebuilt.vendor,
-      prebuilt.description,
-      prebuilt.priceEur,
-      Math.round(prebuilt.priceEur / 0.84),
-      prebuilt.ramGb,
-      prebuilt.storageGb,
-      prebuilt.llmMaxModelSize,
-      prebuilt.inStock,
-      prebuilt.cpuId,
-      prebuilt.gpuId,
-    );
-  } else {
-    db.prepare(
-      "INSERT INTO prebuilts (name, vendor, description, price_eur, ram_gb, storage_gb, llm_max_model_size, in_stock, cpu_id, gpu_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(
-      prebuilt.name,
-      prebuilt.vendor,
-      prebuilt.description,
-      prebuilt.priceEur,
-      prebuilt.ramGb,
-      prebuilt.storageGb,
-      prebuilt.llmMaxModelSize,
-      prebuilt.inStock,
-      prebuilt.cpuId,
-      prebuilt.gpuId,
-    );
-  }
-}
-
 function ensureRamKit(
   db: DatabaseSync,
   ramKit: {
@@ -1985,105 +1896,6 @@ function seedCatalog(db: DatabaseSync): void {
     ensureCpuCooler(db, cooler);
   });
 
-  const cpu7900 = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7900' LIMIT 1").get() as { id: number };
-  const cpu7950x = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7950X' LIMIT 1").get() as { id: number };
-  const cpui9 = db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i9-14900K' LIMIT 1").get() as { id: number };
-  const cpui7 = db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i7-14700K' LIMIT 1").get() as { id: number };
-  const cpui5 = db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i5-14600K' LIMIT 1").get() as { id: number };
-  const cpu7800x3d = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 7 7800X3D' LIMIT 1").get() as { id: number };
-
-  const gpu4080s = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4080 SUPER' LIMIT 1").get() as { id: number };
-  const gpu4090 = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4090' LIMIT 1").get() as { id: number };
-  const gpu4070ti = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4070 Ti SUPER' LIMIT 1").get() as { id: number };
-  const gpu4070s = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4070 SUPER' LIMIT 1").get() as { id: number };
-  const gpu7900xtx = db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 7900 XTX' LIMIT 1").get() as { id: number };
-  const gpu7800xt = db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 7800 XT' LIMIT 1").get() as { id: number };
-  const gpu4060ti = db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 4060 Ti 16GB' LIMIT 1").get() as { id: number };
-
-  ensurePrebuilt(db, {
-    name: "Nebula Forge XL",
-    vendor: "AI Build Works",
-    description: "High-end local LLM workstation for 34B+ quantized models.",
-    priceEur: 3349,
-    ramGb: 128,
-    storageGb: 4000,
-    llmMaxModelSize: "70B q4 (select workloads)",
-    inStock: 1,
-    cpuId: cpu7950x.id,
-    gpuId: gpu4090.id,
-  });
-  ensurePrebuilt(db, {
-    name: "Vector Home Pro",
-    vendor: "AI Build Works",
-    description: "Balanced AI dev tower for daily coding and local inference.",
-    priceEur: 2099,
-    ramGb: 64,
-    storageGb: 2000,
-    llmMaxModelSize: "34B q4",
-    inStock: 1,
-    cpuId: cpu7900.id,
-    gpuId: gpu4080s.id,
-  });
-  ensurePrebuilt(db, {
-    name: "Redline Studio AI",
-    vendor: "AI Build Works",
-    description: "VRAM-heavy AMD option for open-source inference stacks.",
-    priceEur: 1999,
-    ramGb: 64,
-    storageGb: 2000,
-    llmMaxModelSize: "30B q4",
-    inStock: 1,
-    cpuId: cpui9.id,
-    gpuId: gpu7900xtx.id,
-  });
-  ensurePrebuilt(db, {
-    name: "Creator Edge 16",
-    vendor: "AI Build Works",
-    description: "Creator/gaming hybrid with strong CUDA inference support.",
-    priceEur: 1899,
-    ramGb: 64,
-    storageGb: 2000,
-    llmMaxModelSize: "30B q4",
-    inStock: 1,
-    cpuId: cpui7.id,
-    gpuId: gpu4070ti.id,
-  });
-  ensurePrebuilt(db, {
-    name: "Inference Compact",
-    vendor: "AI Build Works",
-    description: "Power-efficient desktop for 7B-13B local models.",
-    priceEur: 1329,
-    ramGb: 32,
-    storageGb: 1000,
-    llmMaxModelSize: "13B q4",
-    inStock: 1,
-    cpuId: cpui5.id,
-    gpuId: gpu4060ti.id,
-  });
-  ensurePrebuilt(db, {
-    name: "Raster AI Midrange",
-    vendor: "AI Build Works",
-    description: "Balanced AMD raster and local inference setup.",
-    priceEur: 1599,
-    ramGb: 64,
-    storageGb: 2000,
-    llmMaxModelSize: "20B q4",
-    inStock: 1,
-    cpuId: cpu7800x3d.id,
-    gpuId: gpu7800xt.id,
-  });
-  ensurePrebuilt(db, {
-    name: "Stable Dev Box",
-    vendor: "AI Build Works",
-    description: "Reliable day-to-day AI coding machine with quiet thermals.",
-    priceEur: 1749,
-    ramGb: 64,
-    storageGb: 2000,
-    llmMaxModelSize: "20B q4",
-    inStock: 1,
-    cpuId: cpu7900.id,
-    gpuId: gpu4070s.id,
-  });
 }
 
 function seedProfileBuilds(db: DatabaseSync): void {
@@ -2422,6 +2234,98 @@ function seedProfileBuilds(db: DatabaseSync): void {
       sourceRefs: "GPU data: nvidia.com RTX 4090 specs; CPU data: intel.com Core Ultra 9 285K specs.",
       cpuId: ids.cpuultra9,
       gpuId: ids.gpu4090,
+    },
+    {
+      profileKey: "local-llm-inference",
+      profileLabel: "Local LLM Inference",
+      buildName: "Ultra 70B CUDA Tower",
+      targetModel: "70B q4 (select workloads)",
+      ramGb: 128,
+      storageGb: 4000,
+      estimatedPriceEur: 3349,
+      notes: "High-end local LLM workstation tuned for long 34B+ sessions.",
+      sourceRefs: "GPU data: nvidia.com RTX 4090 specs; CPU data: ir.amd.com Ryzen 7000 launch (7950X).",
+      cpuId: ids.cpu7950x,
+      gpuId: ids.gpu4090,
+    },
+    {
+      profileKey: "local-llm-inference",
+      profileLabel: "Local LLM Inference",
+      buildName: "Balanced 34B Dev Tower",
+      targetModel: "34B q4",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 2099,
+      notes: "Balanced daily AI development system with strong local inference throughput.",
+      sourceRefs:
+        "GPU data: nvidia.com RTX 4080 SUPER specs; CPU data: ir.amd.com Ryzen 7000 non-X launch (7900).",
+      cpuId: ids.cpu7900,
+      gpuId: ids.gpu4080s,
+    },
+    {
+      profileKey: "local-llm-inference",
+      profileLabel: "Local LLM Inference",
+      buildName: "Open-Stack 30B VRAM Tower",
+      targetModel: "30B q4",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1999,
+      notes: "VRAM-heavy AMD path for open-source local inference stacks.",
+      sourceRefs: "GPU data: amd.com RX 7900 XTX specs; CPU data: intel.com i9-14900K specs.",
+      cpuId: ids.cpui9,
+      gpuId: ids.gpu7900xtx,
+    },
+    {
+      profileKey: "hybrid-ai-gaming",
+      profileLabel: "Hybrid AI + Gaming",
+      buildName: "Creator + Gaming 16GB CUDA",
+      targetModel: "30B q4 + creator/gaming mix",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1899,
+      notes: "Creator-focused hybrid system with solid CUDA inference and high-refresh gaming.",
+      sourceRefs: "GPU data: nvidia.com RTX 4070 Ti SUPER specs; CPU data: intel.com i7-14700K specs.",
+      cpuId: ids.cpui7,
+      gpuId: ids.gpu4070tis,
+    },
+    {
+      profileKey: "llm-finetune-starter",
+      profileLabel: "LLM Fine-Tune Starter",
+      buildName: "Efficient 13B Entry Desktop",
+      targetModel: "7B-13B q4",
+      ramGb: 32,
+      storageGb: 1000,
+      estimatedPriceEur: 1329,
+      notes: "Power-efficient entry desktop for local experimentation and starter tuning.",
+      sourceRefs: "GPU data: nvidia.com RTX 4060 Ti 16GB specs; CPU data: intel.com i5-14600K specs.",
+      cpuId: ids.cpui5,
+      gpuId: ids.gpu4060ti16,
+    },
+    {
+      profileKey: "hybrid-ai-gaming",
+      profileLabel: "Hybrid AI + Gaming",
+      buildName: "Raster-First 20B Hybrid",
+      targetModel: "20B q4 + 1440p raster gaming",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1599,
+      notes: "AMD-leaning hybrid setup balancing raster performance with local AI workloads.",
+      sourceRefs: "GPU data: amd.com RX 7800 XT specs; CPU data: amd.com Ryzen 7800X3D specs.",
+      cpuId: ids.cpu7800x3d,
+      gpuId: ids.gpu7800xt,
+    },
+    {
+      profileKey: "llm-finetune-starter",
+      profileLabel: "LLM Fine-Tune Starter",
+      buildName: "Quiet Daily AI Workstation",
+      targetModel: "20B q4",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1749,
+      notes: "Reliable day-to-day AI coding machine tuned for quiet thermals and stable tuning runs.",
+      sourceRefs: "GPU data: nvidia.com RTX 4070 SUPER specs; CPU data: ir.amd.com Ryzen 7900 launch.",
+      cpuId: ids.cpu7900,
+      gpuId: ids.gpu4070s,
     },
   ];
 
