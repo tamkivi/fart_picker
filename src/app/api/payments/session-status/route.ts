@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 export async function GET(request: Request) {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
-  const user = getUserFromSessionToken(token);
+  const user = await getUserFromSessionToken(token);
 
   if (!user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "Missing session_id." }, { status: 400 });
   }
 
-  const order = getOrderByCheckoutSessionForUser({
+  const order = await getOrderByCheckoutSessionForUser({
     userId: user.id,
     checkoutSessionId: sessionId,
   });
@@ -49,20 +49,20 @@ export async function GET(request: Request) {
   }
 
   if (session.payment_status === "paid") {
-    markOrderPaidFromCheckoutSession({
+    await markOrderPaidFromCheckoutSession({
       checkoutSessionId: session.id,
       paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
     });
   } else if (session.status === "expired") {
-    markOrderCanceledFromCheckoutSession(session.id);
+    await markOrderCanceledFromCheckoutSession(session.id);
   } else if (session.payment_status === "unpaid" && session.status === "complete") {
-    markOrderFailedFromCheckoutSession({
+    await markOrderFailedFromCheckoutSession({
       checkoutSessionId: session.id,
       paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
     });
   }
 
-  const refreshed = getOrderByCheckoutSessionForUser({
+  const refreshed = await getOrderByCheckoutSessionForUser({
     userId: user.id,
     checkoutSessionId: sessionId,
   });

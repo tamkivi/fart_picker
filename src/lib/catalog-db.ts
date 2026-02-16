@@ -2,6 +2,7 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypt
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { Pool } from "pg";
 
 export type UserRole = "ADMIN" | "DEV" | "USER";
 
@@ -136,6 +137,8 @@ export type PaidOrderEmailPayload = {
 
 const globalForCatalogDb = globalThis as unknown as {
   catalogDb: DatabaseSync | undefined;
+  pgPool: Pool | undefined;
+  pgSchemaReady: Promise<void> | undefined;
 };
 
 const SESSION_DAYS = 7;
@@ -151,6 +154,99 @@ function resolveDataDir(): string {
   }
 
   return join(process.cwd(), "data");
+}
+
+function shouldUsePersistentSql(): boolean {
+  return Boolean(process.env.DATABASE_URL || process.env.POSTGRES_URL);
+}
+
+function getPgPool(): Pool {
+  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not configured.");
+  }
+
+  if (!globalForCatalogDb.pgPool) {
+    globalForCatalogDb.pgPool = new Pool({
+      connectionString,
+      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+      max: 4,
+    });
+  }
+
+  return globalForCatalogDb.pgPool;
+}
+
+async function ensurePgSchema(): Promise<void> {
+  if (!shouldUsePersistentSql()) {
+    return;
+  }
+
+  if (!globalForCatalogDb.pgSchemaReady) {
+    globalForCatalogDb.pgSchemaReady = (async () => {
+      const pool = getPgPool();
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          email TEXT NOT NULL UNIQUE,
+          password_hash TEXT NOT NULL,
+          role TEXT NOT NULL CHECK(role IN ('ADMIN', 'DEV', 'USER')),
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS sessions (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id),
+          token_hash TEXT NOT NULL UNIQUE,
+          expires_at TIMESTAMPTZ NOT NULL,
+          ip_address TEXT,
+          user_agent TEXT,
+          invalidated_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
+        CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+
+        CREATE TABLE IF NOT EXISTS orders (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id),
+          profile_build_id INTEGER NOT NULL,
+          build_name TEXT NOT NULL,
+          amount_eur_cents INTEGER NOT NULL,
+          currency TEXT NOT NULL DEFAULT 'eur',
+          status TEXT NOT NULL CHECK(status IN ('PENDING', 'CHECKOUT_CREATED', 'PAID', 'CANCELED', 'FAILED')) DEFAULT 'PENDING',
+          stripe_checkout_session_id TEXT UNIQUE,
+          stripe_payment_intent_id TEXT,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_profile_build_id ON orders(profile_build_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+
+        CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+          id SERIAL PRIMARY KEY,
+          event_id TEXT NOT NULL UNIQUE,
+          event_type TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+    })();
+  }
+
+  await globalForCatalogDb.pgSchemaReady;
+}
+
+function rowDateToString(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  return String(value ?? "");
 }
 
 function toPublicUser(user: DbUserRecord): PublicUser {
@@ -1446,12 +1542,11 @@ export function getProfileBuildById(id: number): ProfileBuildRecord | null {
   return (row as ProfileBuildRecord | undefined) ?? null;
 }
 
-export function registerAccount(input: {
+export async function registerAccount(input: {
   email: string;
   password: string;
   adminSetupCode?: string;
-}): { ok: true; user: PublicUser } | { ok: false; message: string } {
-  const db = getDb();
+}): Promise<{ ok: true; user: PublicUser } | { ok: false; message: string }> {
   const email = normalizeEmail(input.email);
   const password = input.password;
 
@@ -1463,6 +1558,51 @@ export function registerAccount(input: {
     return { ok: false, message: "Password must be at least 12 characters." };
   }
 
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const existing = await pool.query("SELECT id FROM users WHERE email = $1 LIMIT 1", [email]);
+    if (existing.rowCount) {
+      return { ok: false, message: "An account with this email already exists." };
+    }
+
+    let role: UserRole = "USER";
+    if (email === ADMIN_EMAIL) {
+      const anyAdmin = await pool.query("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1");
+      if (anyAdmin.rowCount) {
+        return { ok: false, message: "Admin account already exists." };
+      }
+
+      const adminSetupKey = process.env.ADMIN_SETUP_CODE;
+      if (!adminSetupKey || input.adminSetupCode !== adminSetupKey) {
+        return { ok: false, message: "Admin setup code is required for the admin account." };
+      }
+
+      role = "ADMIN";
+    }
+
+    const passwordHash = hashPassword(password);
+    const inserted = await pool.query(
+      "INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING id, email, role, created_at",
+      [email, passwordHash, role],
+    );
+    const row = inserted.rows[0] as { id: number; email: string; role: UserRole; created_at: string | Date } | undefined;
+    if (!row) {
+      return { ok: false, message: "Failed to create account." };
+    }
+
+    return {
+      ok: true,
+      user: {
+        id: row.id,
+        email: row.email,
+        role: row.role,
+        createdAt: rowDateToString(row.created_at),
+      },
+    };
+  }
+
+  const db = getDb();
   const hasExisting = db.prepare("SELECT id FROM users WHERE email = ?").get(email) as { id: number } | undefined;
   if (hasExisting) {
     return { ok: false, message: "An account with this email already exists." };
@@ -1494,14 +1634,54 @@ export function registerAccount(input: {
   return { ok: true, user: toPublicUser(inserted) };
 }
 
-export function createSessionForCredentials(input: {
+export async function createSessionForCredentials(input: {
   email: string;
   password: string;
   ipAddress?: string;
   userAgent?: string;
-}): { ok: true; token: string; user: PublicUser; expiresAt: string } | { ok: false; message: string } {
+}): Promise<{ ok: true; token: string; user: PublicUser; expiresAt: string } | { ok: false; message: string }> {
+  const normalizedEmail = normalizeEmail(input.email);
+
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const userQuery = await pool.query(
+      "SELECT id, email, password_hash, role, created_at FROM users WHERE email = $1 LIMIT 1",
+      [normalizedEmail],
+    );
+    const user = userQuery.rows[0] as DbUserRecord | undefined;
+
+    if (!user) {
+      return { ok: false, message: "No account found for this email. Please sign up first." };
+    }
+
+    if (!verifyPassword(input.password, user.password_hash)) {
+      return { ok: false, message: "Incorrect password." };
+    }
+
+    const token = createSessionToken();
+    const tokenHash = hashToken(token);
+    const expiry = expiresAt(SESSION_DAYS);
+    await pool.query(
+      "INSERT INTO sessions (user_id, token_hash, expires_at, ip_address, user_agent) VALUES ($1, $2, $3::timestamptz, $4, $5)",
+      [user.id, tokenHash, expiry, input.ipAddress ?? null, input.userAgent ?? null],
+    );
+
+    return {
+      ok: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        createdAt: rowDateToString((user as unknown as { created_at: string | Date }).created_at),
+      },
+      expiresAt: expiry,
+    };
+  }
+
   const db = getDb();
-  const user = getUserByEmail(input.email);
+  const user = getUserByEmail(normalizedEmail);
 
   if (!user) {
     return { ok: false, message: "No account found for this email. Please sign up first." };
@@ -1527,9 +1707,36 @@ export function createSessionForCredentials(input: {
   };
 }
 
-export function getUserFromSessionToken(token: string | undefined): PublicUser | null {
+export async function getUserFromSessionToken(token: string | undefined): Promise<PublicUser | null> {
   if (!token) {
     return null;
+  }
+
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const tokenHash = hashToken(token);
+    const result = await pool.query(
+      `
+      SELECT u.id, u.email, u.password_hash, u.role, u.created_at
+      FROM sessions s
+      JOIN users u ON u.id = s.user_id
+      WHERE s.token_hash = $1
+        AND s.invalidated_at IS NULL
+        AND s.expires_at > NOW()
+      LIMIT 1
+      `,
+      [tokenHash],
+    );
+    const row = result.rows[0] as DbUserRecord | undefined;
+    return row
+      ? {
+          id: row.id,
+          email: row.email,
+          role: row.role,
+          createdAt: rowDateToString((row as unknown as { created_at: string | Date }).created_at),
+        }
+      : null;
   }
 
   const db = getDb();
@@ -1551,8 +1758,16 @@ export function getUserFromSessionToken(token: string | undefined): PublicUser |
   return row ? toPublicUser(row as DbUserRecord) : null;
 }
 
-export function invalidateSessionToken(token: string | undefined): void {
+export async function invalidateSessionToken(token: string | undefined): Promise<void> {
   if (!token) {
+    return;
+  }
+
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const tokenHash = hashToken(token);
+    await pool.query("UPDATE sessions SET invalidated_at = NOW() WHERE token_hash = $1", [tokenHash]);
     return;
   }
 
@@ -1561,7 +1776,27 @@ export function invalidateSessionToken(token: string | undefined): void {
   db.prepare("UPDATE sessions SET invalidated_at = datetime('now') WHERE token_hash = ?").run(tokenHash);
 }
 
-export function getAccountSummary(): AccountSummary {
+export async function getAccountSummary(): Promise<AccountSummary> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(`
+      SELECT
+        COUNT(*)::int AS total,
+        SUM(CASE WHEN role = 'ADMIN' THEN 1 ELSE 0 END)::int AS admins,
+        SUM(CASE WHEN role = 'DEV' THEN 1 ELSE 0 END)::int AS devs,
+        SUM(CASE WHEN role = 'USER' THEN 1 ELSE 0 END)::int AS users
+      FROM users
+    `);
+    const row = result.rows[0] as { total: number; admins: number; devs: number; users: number };
+    return {
+      total: row?.total ?? 0,
+      admins: row?.admins ?? 0,
+      devs: row?.devs ?? 0,
+      users: row?.users ?? 0,
+    };
+  }
+
   const db = getDb();
   const row = db
     .prepare(`
@@ -1582,10 +1817,40 @@ export function getAccountSummary(): AccountSummary {
   };
 }
 
-export function createPendingOrderForBuild(input: {
+export async function createPendingOrderForBuild(input: {
   userId: number;
   buildId: number;
-}): { ok: true; orderId: number; buildName: string; amountEurCents: number } | { ok: false; message: string } {
+}): Promise<{ ok: true; orderId: number; buildName: string; amountEurCents: number } | { ok: false; message: string }> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const build = getProfileBuildById(input.buildId);
+    if (!build) {
+      return { ok: false, message: "Build not found." };
+    }
+
+    const amountEurCents = Math.max(0, Math.trunc(build.estimated_price_eur * 100));
+    if (amountEurCents <= 0) {
+      return { ok: false, message: "Build price is invalid." };
+    }
+
+    const inserted = await pool.query(
+      "INSERT INTO orders (user_id, profile_build_id, build_name, amount_eur_cents, currency, status) VALUES ($1, $2, $3, $4, 'eur', 'PENDING') RETURNING id",
+      [input.userId, input.buildId, build.build_name, amountEurCents],
+    );
+    const orderId = Number(inserted.rows[0]?.id);
+    if (!Number.isFinite(orderId)) {
+      return { ok: false, message: "Could not create order." };
+    }
+
+    return {
+      ok: true,
+      orderId,
+      buildName: build.build_name,
+      amountEurCents,
+    };
+  }
+
   const db = getDb();
   const build = db
     .prepare("SELECT id, build_name, estimated_price_eur FROM profile_builds WHERE id = ? LIMIT 1")
@@ -1614,7 +1879,23 @@ export function createPendingOrderForBuild(input: {
   };
 }
 
-export function setOrderCheckoutSession(input: { orderId: number; checkoutSessionId: string }): void {
+export async function setOrderCheckoutSession(input: { orderId: number; checkoutSessionId: string }): Promise<void> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    await pool.query(
+      `
+      UPDATE orders
+      SET status = 'CHECKOUT_CREATED',
+          stripe_checkout_session_id = $1,
+          updated_at = NOW()
+      WHERE id = $2
+      `,
+      [input.checkoutSessionId, input.orderId],
+    );
+    return;
+  }
+
   const db = getDb();
   db.prepare(
     `
@@ -1627,10 +1908,26 @@ export function setOrderCheckoutSession(input: { orderId: number; checkoutSessio
   ).run(input.checkoutSessionId, input.orderId);
 }
 
-export function markOrderPaidFromCheckoutSession(input: {
+export async function markOrderPaidFromCheckoutSession(input: {
   checkoutSessionId: string;
   paymentIntentId: string | null;
-}): void {
+}): Promise<void> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    await pool.query(
+      `
+      UPDATE orders
+      SET status = 'PAID',
+          stripe_payment_intent_id = COALESCE($1, stripe_payment_intent_id),
+          updated_at = NOW()
+      WHERE stripe_checkout_session_id = $2
+      `,
+      [input.paymentIntentId, input.checkoutSessionId],
+    );
+    return;
+  }
+
   const db = getDb();
   db.prepare(
     `
@@ -1643,10 +1940,26 @@ export function markOrderPaidFromCheckoutSession(input: {
   ).run(input.paymentIntentId, input.checkoutSessionId);
 }
 
-export function markOrderFailedFromCheckoutSession(input: {
+export async function markOrderFailedFromCheckoutSession(input: {
   checkoutSessionId: string;
   paymentIntentId: string | null;
-}): void {
+}): Promise<void> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    await pool.query(
+      `
+      UPDATE orders
+      SET status = 'FAILED',
+          stripe_payment_intent_id = COALESCE($1, stripe_payment_intent_id),
+          updated_at = NOW()
+      WHERE stripe_checkout_session_id = $2
+      `,
+      [input.paymentIntentId, input.checkoutSessionId],
+    );
+    return;
+  }
+
   const db = getDb();
   db.prepare(
     `
@@ -1659,7 +1972,22 @@ export function markOrderFailedFromCheckoutSession(input: {
   ).run(input.paymentIntentId, input.checkoutSessionId);
 }
 
-export function markOrderCanceledFromCheckoutSession(checkoutSessionId: string): void {
+export async function markOrderCanceledFromCheckoutSession(checkoutSessionId: string): Promise<void> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    await pool.query(
+      `
+      UPDATE orders
+      SET status = 'CANCELED',
+          updated_at = NOW()
+      WHERE stripe_checkout_session_id = $1
+      `,
+      [checkoutSessionId],
+    );
+    return;
+  }
+
   const db = getDb();
   db.prepare(
     `
@@ -1671,10 +1999,44 @@ export function markOrderCanceledFromCheckoutSession(checkoutSessionId: string):
   ).run(checkoutSessionId);
 }
 
-export function getOrderByCheckoutSessionForUser(input: {
+export async function getOrderByCheckoutSessionForUser(input: {
   userId: number;
   checkoutSessionId: string;
-}): OrderRecord | null {
+}): Promise<OrderRecord | null> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        user_id,
+        profile_build_id,
+        build_name,
+        amount_eur_cents,
+        currency,
+        status,
+        stripe_checkout_session_id,
+        stripe_payment_intent_id,
+        created_at,
+        updated_at
+      FROM orders
+      WHERE user_id = $1 AND stripe_checkout_session_id = $2
+      LIMIT 1
+      `,
+      [input.userId, input.checkoutSessionId],
+    );
+    const row = result.rows[0] as (OrderRow & { created_at: string | Date; updated_at: string | Date }) | undefined;
+    if (!row) {
+      return null;
+    }
+    return {
+      ...row,
+      created_at: rowDateToString(row.created_at),
+      updated_at: rowDateToString(row.updated_at),
+    };
+  }
+
   const db = getDb();
   const row = db
     .prepare(
@@ -1701,7 +2063,41 @@ export function getOrderByCheckoutSessionForUser(input: {
   return (row as OrderRow | undefined) ?? null;
 }
 
-export function getOrderById(id: number): OrderRecord | null {
+export async function getOrderById(id: number): Promise<OrderRecord | null> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        user_id,
+        profile_build_id,
+        build_name,
+        amount_eur_cents,
+        currency,
+        status,
+        stripe_checkout_session_id,
+        stripe_payment_intent_id,
+        created_at,
+        updated_at
+      FROM orders
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [id],
+    );
+    const row = result.rows[0] as (OrderRow & { created_at: string | Date; updated_at: string | Date }) | undefined;
+    if (!row) {
+      return null;
+    }
+    return {
+      ...row,
+      created_at: rowDateToString(row.created_at),
+      updated_at: rowDateToString(row.updated_at),
+    };
+  }
+
   const db = getDb();
   const row = db
     .prepare(
@@ -1728,12 +2124,36 @@ export function getOrderById(id: number): OrderRecord | null {
   return (row as OrderRow | undefined) ?? null;
 }
 
-export function getRecentOpenOrderForBuild(input: {
+export async function getRecentOpenOrderForBuild(input: {
   userId: number;
   buildId: number;
-}): (Pick<OrderRecord, "id" | "build_name" | "amount_eur_cents" | "stripe_checkout_session_id"> & {
+}): Promise<(Pick<OrderRecord, "id" | "build_name" | "amount_eur_cents" | "stripe_checkout_session_id"> & {
   status: OrderStatus;
-}) | null {
+}) | null> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `
+      SELECT id, build_name, amount_eur_cents, stripe_checkout_session_id, status
+      FROM orders
+      WHERE user_id = $1
+        AND profile_build_id = $2
+        AND status IN ('PENDING', 'CHECKOUT_CREATED')
+        AND created_at > NOW() - INTERVAL '30 minutes'
+      ORDER BY id DESC
+      LIMIT 1
+      `,
+      [input.userId, input.buildId],
+    );
+    const row = result.rows[0] as
+      | (Pick<OrderRecord, "id" | "build_name" | "amount_eur_cents" | "stripe_checkout_session_id"> & {
+          status: OrderStatus;
+        })
+      | undefined;
+    return row ?? null;
+  }
+
   const db = getDb();
   const row = db
     .prepare(
@@ -1759,7 +2179,17 @@ export function getRecentOpenOrderForBuild(input: {
   );
 }
 
-export function recordStripeWebhookEvent(eventId: string, eventType: string): boolean {
+export async function recordStripeWebhookEvent(eventId: string, eventType: string): Promise<boolean> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(
+      "INSERT INTO stripe_webhook_events (event_id, event_type) VALUES ($1, $2) ON CONFLICT (event_id) DO NOTHING",
+      [eventId, eventType],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
   const db = getDb();
   try {
     db.prepare("INSERT INTO stripe_webhook_events (event_id, event_type) VALUES (?, ?)").run(eventId, eventType);
@@ -1769,7 +2199,22 @@ export function recordStripeWebhookEvent(eventId: string, eventType: string): bo
   }
 }
 
-export function markOrderCheckoutCreationFailed(orderId: number): void {
+export async function markOrderCheckoutCreationFailed(orderId: number): Promise<void> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    await pool.query(
+      `
+      UPDATE orders
+      SET status = 'FAILED',
+          updated_at = NOW()
+      WHERE id = $1
+      `,
+      [orderId],
+    );
+    return;
+  }
+
   const db = getDb();
   db.prepare(
     `
@@ -1781,7 +2226,39 @@ export function markOrderCheckoutCreationFailed(orderId: number): void {
   ).run(orderId);
 }
 
-export function listOrdersForUser(userId: number): UserOrderListItem[] {
+export async function listOrdersForUser(userId: number): Promise<UserOrderListItem[]> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        build_name,
+        amount_eur_cents,
+        currency,
+        status,
+        stripe_checkout_session_id,
+        created_at,
+        updated_at
+      FROM orders
+      WHERE user_id = $1
+      ORDER BY id DESC
+      `,
+      [userId],
+    );
+    return result.rows.map((row) => ({
+      id: Number(row.id),
+      build_name: String(row.build_name),
+      amount_eur_cents: Number(row.amount_eur_cents),
+      currency: String(row.currency),
+      status: row.status as OrderStatus,
+      stripe_checkout_session_id: (row.stripe_checkout_session_id as string | null) ?? null,
+      created_at: rowDateToString(row.created_at),
+      updated_at: rowDateToString(row.updated_at),
+    }));
+  }
+
   const db = getDb();
   return db
     .prepare(
@@ -1803,7 +2280,46 @@ export function listOrdersForUser(userId: number): UserOrderListItem[] {
     .all(userId) as UserOrderListItem[];
 }
 
-export function listAllOrdersForAdmin(): AdminOrderListItem[] {
+export async function listAllOrdersForAdmin(): Promise<AdminOrderListItem[]> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `
+      SELECT
+        o.id,
+        o.user_id,
+        u.email AS user_email,
+        o.profile_build_id,
+        o.build_name,
+        o.amount_eur_cents,
+        o.currency,
+        o.status,
+        o.stripe_checkout_session_id,
+        o.stripe_payment_intent_id,
+        o.created_at,
+        o.updated_at
+      FROM orders o
+      JOIN users u ON u.id = o.user_id
+      ORDER BY o.id DESC
+      `,
+    );
+    return result.rows.map((row) => ({
+      id: Number(row.id),
+      user_id: Number(row.user_id),
+      user_email: String(row.user_email),
+      profile_build_id: Number(row.profile_build_id),
+      build_name: String(row.build_name),
+      amount_eur_cents: Number(row.amount_eur_cents),
+      currency: String(row.currency),
+      status: row.status as OrderStatus,
+      stripe_checkout_session_id: (row.stripe_checkout_session_id as string | null) ?? null,
+      stripe_payment_intent_id: (row.stripe_payment_intent_id as string | null) ?? null,
+      created_at: rowDateToString(row.created_at),
+      updated_at: rowDateToString(row.updated_at),
+    }));
+  }
+
   const db = getDb();
   return db
     .prepare(
@@ -1829,7 +2345,39 @@ export function listAllOrdersForAdmin(): AdminOrderListItem[] {
     .all() as AdminOrderListItem[];
 }
 
-export function getPaidOrderEmailPayloadByCheckoutSession(checkoutSessionId: string): PaidOrderEmailPayload | null {
+export async function getPaidOrderEmailPayloadByCheckoutSession(
+  checkoutSessionId: string,
+): Promise<PaidOrderEmailPayload | null> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `
+      SELECT
+        o.id AS "orderId",
+        u.email AS "customerEmail",
+        o.build_name AS "buildName",
+        o.amount_eur_cents AS "amountEurCents",
+        o.created_at AS "createdAt"
+      FROM orders o
+      JOIN users u ON u.id = o.user_id
+      WHERE o.stripe_checkout_session_id = $1
+      LIMIT 1
+      `,
+      [checkoutSessionId],
+    );
+    const row = result.rows[0] as
+      | { orderId: number; customerEmail: string; buildName: string; amountEurCents: number; createdAt: string | Date }
+      | undefined;
+    if (!row) {
+      return null;
+    }
+    return {
+      ...row,
+      createdAt: rowDateToString(row.createdAt),
+    };
+  }
+
   const db = getDb();
   const row = db
     .prepare(

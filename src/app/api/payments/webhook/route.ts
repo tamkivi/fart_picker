@@ -28,19 +28,19 @@ export async function POST(request: Request) {
     const payload = await request.text();
     const stripe = getStripe();
     const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-    const isNewEvent = recordStripeWebhookEvent(event.id, event.type);
+    const isNewEvent = await recordStripeWebhookEvent(event.id, event.type);
     if (!isNewEvent) {
       return NextResponse.json({ received: true, duplicate: true });
     }
 
-    const handleCheckoutSessionEvent = (session: Stripe.Checkout.Session) => {
+    const handleCheckoutSessionEvent = async (session: Stripe.Checkout.Session) => {
       const orderIdRaw = session.metadata?.order_id;
       const orderId = Number.parseInt(orderIdRaw ?? "", 10);
       if (!Number.isFinite(orderId)) {
         return null;
       }
 
-      const order = getOrderById(orderId);
+      const order = await getOrderById(orderId);
       if (!order) {
         return null;
       }
@@ -58,18 +58,18 @@ export async function POST(request: Request) {
 
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const session = event.data.object as Stripe.Checkout.Session;
-      const order = handleCheckoutSessionEvent(session);
+      const order = await handleCheckoutSessionEvent(session);
       if (!order) {
         return NextResponse.json({ message: "Order/session verification failed." }, { status: 400 });
       }
 
       if (order.status !== "PAID") {
-        markOrderPaidFromCheckoutSession({
+        await markOrderPaidFromCheckoutSession({
           checkoutSessionId: session.id,
           paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
         });
 
-        const emailPayload = getPaidOrderEmailPayloadByCheckoutSession(session.id);
+        const emailPayload = await getPaidOrderEmailPayloadByCheckoutSession(session.id);
         if (emailPayload) {
           await sendPaymentConfirmationEmail({
             to: emailPayload.customerEmail,
@@ -84,18 +84,18 @@ export async function POST(request: Request) {
 
     if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
-      if (!handleCheckoutSessionEvent(session)) {
+      if (!(await handleCheckoutSessionEvent(session))) {
         return NextResponse.json({ message: "Order/session verification failed." }, { status: 400 });
       }
-      markOrderCanceledFromCheckoutSession(session.id);
+      await markOrderCanceledFromCheckoutSession(session.id);
     }
 
     if (event.type === "checkout.session.async_payment_failed") {
       const session = event.data.object as Stripe.Checkout.Session;
-      if (!handleCheckoutSessionEvent(session)) {
+      if (!(await handleCheckoutSessionEvent(session))) {
         return NextResponse.json({ message: "Order/session verification failed." }, { status: 400 });
       }
-      markOrderFailedFromCheckoutSession({
+      await markOrderFailedFromCheckoutSession({
         checkoutSessionId: session.id,
         paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
       });

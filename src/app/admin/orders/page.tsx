@@ -9,13 +9,13 @@ import { getUserFromSessionToken, listAllOrdersForAdmin } from "@/lib/catalog-db
 export default async function AdminOrdersPage() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
-  const user = getUserFromSessionToken(token);
+  const user = await getUserFromSessionToken(token);
 
   if (!user || user.role !== "ADMIN") {
     redirect("/");
   }
 
-  const orders = listAllOrdersForAdmin();
+  const orders = await listAllOrdersForAdmin();
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">

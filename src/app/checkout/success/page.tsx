@@ -15,10 +15,10 @@ export default async function CheckoutSuccessPage({
 
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
-  const user = getUserFromSessionToken(token);
+  const user = await getUserFromSessionToken(token);
 
   const order = user && sessionId
-    ? getOrderByCheckoutSessionForUser({ userId: user.id, checkoutSessionId: sessionId })
+    ? await getOrderByCheckoutSessionForUser({ userId: user.id, checkoutSessionId: sessionId })
     : null;
 
   return (

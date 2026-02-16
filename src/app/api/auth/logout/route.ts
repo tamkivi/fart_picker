@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     .find((value) => value.startsWith(`${SESSION_COOKIE_NAME}=`));
 
   const token = match?.slice(SESSION_COOKIE_NAME.length + 1);
-  invalidateSessionToken(token);
+  await invalidateSessionToken(token);
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(SESSION_COOKIE_NAME, "", clearSessionCookieOptions());

@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   try {
     const store = await cookies();
     const token = store.get(SESSION_COOKIE_NAME)?.value;
-    const user = getUserFromSessionToken(token);
+    const user = await getUserFromSessionToken(token);
 
     if (!user) {
       return NextResponse.json({ message: "Please log in before purchasing." }, { status: 401 });
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     }
 
     const stripe = getStripe();
-    const reusableOrder = getRecentOpenOrderForBuild({
+    const reusableOrder = await getRecentOpenOrderForBuild({
       userId: user.id,
       buildId,
     });
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const order = createPendingOrderForBuild({
+    const order = await createPendingOrderForBuild({
       userId: user.id,
       buildId,
     });
@@ -117,11 +117,11 @@ export async function POST(request: Request) {
     });
 
     if (!session.id || !session.url) {
-      markOrderCheckoutCreationFailed(order.orderId);
+      await markOrderCheckoutCreationFailed(order.orderId);
       return NextResponse.json({ message: "Failed to create payment session." }, { status: 502 });
     }
 
-    setOrderCheckoutSession({
+    await setOrderCheckoutSession({
       orderId: order.orderId,
       checkoutSessionId: session.id,
     });

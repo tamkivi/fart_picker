@@ -9,13 +9,13 @@ import { getUserFromSessionToken, listOrdersForUser } from "@/lib/catalog-db";
 export default async function OrdersPage() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
-  const user = getUserFromSessionToken(token);
+  const user = await getUserFromSessionToken(token);
 
   if (!user) {
     redirect("/");
   }
 
-  const orders = listOrdersForUser(user.id);
+  const orders = await listOrdersForUser(user.id);
 
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">

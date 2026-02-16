@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Email and password are required." }, { status: 400 });
     }
 
-    const result = registerAccount({
+    const result = await registerAccount({
       email: body.email,
       password: body.password,
       adminSetupCode: body.adminSetupCode,
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: result.message }, { status: 400 });
     }
 
-    const auth = createSessionForCredentials({
+    const auth = await createSessionForCredentials({
       email: body.email,
       password: body.password,
       ipAddress: request.headers.get("x-forwarded-for") ?? undefined,

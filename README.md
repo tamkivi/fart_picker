@@ -101,3 +101,8 @@ Then open `http://localhost:3000`.
 
 ### Optional environment variables
 - `ADMIN_SETUP_CODE` required to create the admin account for `gustavpaul@tamkivi.com`
+- `DATABASE_URL` strongly recommended in production for persistent accounts/sessions/orders
+- `STRIPE_SECRET_KEY` required for checkout session creation
+- `STRIPE_WEBHOOK_SECRET` required for webhook signature verification
+- `NEXT_PUBLIC_APP_URL` required for Stripe success/cancel return URLs
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM_EMAIL` for payment confirmation emails
