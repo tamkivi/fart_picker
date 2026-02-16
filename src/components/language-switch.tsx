@@ -37,7 +37,7 @@ export function LanguageSwitch({ lang }: LanguageSwitchProps) {
         className={`label-pill cursor-pointer ${lang === "et" ? "" : "opacity-70"}`}
         aria-pressed={lang === "et"}
       >
-        ET
+        EE
       </button>
     </div>
   );
