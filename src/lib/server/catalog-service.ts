@@ -5,6 +5,7 @@ import {
   listCompactAiSystems,
   listCpuCoolers,
   listCpus,
+  listEstonianPriceChecks,
   listGpus,
   listMotherboards,
   listPowerSupplies,
@@ -22,6 +23,8 @@ export type PublicGpu = {
   architecture: string;
   aiScore: number;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicCpu = {
@@ -33,6 +36,8 @@ export type PublicCpu = {
   socket: string;
   aiScore: number;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicPrebuilt = {
@@ -47,6 +52,8 @@ export type PublicPrebuilt = {
   cpuName: string;
   gpuName: string;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicRamKit = {
@@ -60,6 +67,8 @@ export type PublicRamKit = {
   casLatency: string;
   profileSupport: string;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicPowerSupply = {
@@ -72,6 +81,8 @@ export type PublicPowerSupply = {
   modularity: string;
   pcie5Support: boolean;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicCase = {
@@ -83,6 +94,8 @@ export type PublicCase = {
   radiatorSupport: string;
   includedFans: string;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicMotherboard = {
@@ -95,6 +108,8 @@ export type PublicMotherboard = {
   maxMemoryGb: number;
   pcieGen5Support: boolean;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicCompactAiSystem = {
@@ -109,6 +124,8 @@ export type PublicCompactAiSystem = {
   bestFor: string;
   inStock: boolean;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicStorageDrive = {
@@ -121,6 +138,8 @@ export type PublicStorageDrive = {
   seqReadMbS: number;
   enduranceTbw: number;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicCpuCooler = {
@@ -133,6 +152,8 @@ export type PublicCpuCooler = {
   maxTdpW: number;
   noiseDb: string;
   priceEur: number;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
 };
 
 export type PublicProfileBuild = {
@@ -156,7 +177,28 @@ export type PublicProfileBuild = {
 };
 
 export function getHomeCatalogView() {
+  const priceChecks = listEstonianPriceChecks();
+  const priceLookup = new Map<string, { final: number; avg: number }>();
+  priceChecks.forEach((row) => {
+    priceLookup.set(`${row.category}:${row.item_id}`, { final: row.final_price_eur, avg: row.market_avg_eur });
+  });
+
+  const resolvePreorderPrice = (category: string, itemId: number, basePrice: number) => {
+    const fromMarket = priceLookup.get(`${category}:${itemId}`);
+    if (fromMarket) {
+      return {
+        preorderPriceEur: Math.round(fromMarket.final),
+        marketAvgEur: Number(fromMarket.avg.toFixed(2)),
+      };
+    }
+    return {
+      preorderPriceEur: Math.round(basePrice * 1.15),
+      marketAvgEur: null,
+    };
+  };
+
   const gpus: PublicGpu[] = listGpus().map((gpu) => ({
+    ...resolvePreorderPrice("gpu", gpu.id, gpu.price_eur),
     id: gpu.id,
     name: gpu.name,
     brand: gpu.brand,
@@ -167,6 +209,7 @@ export function getHomeCatalogView() {
   }));
 
   const cpus: PublicCpu[] = listCpus().map((cpu) => ({
+    ...resolvePreorderPrice("cpu", cpu.id, cpu.price_eur),
     id: cpu.id,
     name: cpu.name,
     brand: cpu.brand,
@@ -178,6 +221,7 @@ export function getHomeCatalogView() {
   }));
 
   const prebuilts: PublicPrebuilt[] = listPrebuilts().map((prebuilt) => ({
+    ...resolvePreorderPrice("prebuilt", prebuilt.id, prebuilt.price_eur),
     id: prebuilt.id,
     name: prebuilt.name,
     vendor: prebuilt.vendor,
@@ -212,6 +256,7 @@ export function getHomeCatalogView() {
   }));
 
   const ramKits: PublicRamKit[] = listRamKits().map((ramKit) => ({
+    ...resolvePreorderPrice("ram_kit", ramKit.id, ramKit.price_eur),
     id: ramKit.id,
     name: ramKit.name,
     brand: ramKit.brand,
@@ -225,6 +270,7 @@ export function getHomeCatalogView() {
   }));
 
   const powerSupplies: PublicPowerSupply[] = listPowerSupplies().map((psu) => ({
+    ...resolvePreorderPrice("power_supply", psu.id, psu.price_eur),
     id: psu.id,
     name: psu.name,
     brand: psu.brand,
@@ -237,6 +283,7 @@ export function getHomeCatalogView() {
   }));
 
   const cases: PublicCase[] = listCases().map((pcCase) => ({
+    ...resolvePreorderPrice("case", pcCase.id, pcCase.price_eur),
     id: pcCase.id,
     name: pcCase.name,
     brand: pcCase.brand,
@@ -248,6 +295,7 @@ export function getHomeCatalogView() {
   }));
 
   const motherboards: PublicMotherboard[] = listMotherboards().map((motherboard) => ({
+    ...resolvePreorderPrice("motherboard", motherboard.id, motherboard.price_eur),
     id: motherboard.id,
     name: motherboard.name,
     brand: motherboard.brand,
@@ -260,6 +308,7 @@ export function getHomeCatalogView() {
   }));
 
   const compactAiSystems: PublicCompactAiSystem[] = listCompactAiSystems().map((system) => ({
+    ...resolvePreorderPrice("compact_ai_system", system.id, system.price_eur),
     id: system.id,
     name: system.name,
     vendor: system.vendor,
@@ -274,6 +323,7 @@ export function getHomeCatalogView() {
   }));
 
   const storageDrives: PublicStorageDrive[] = listStorageDrives().map((drive) => ({
+    ...resolvePreorderPrice("storage_drive", drive.id, drive.price_eur),
     id: drive.id,
     name: drive.name,
     brand: drive.brand,
@@ -286,6 +336,7 @@ export function getHomeCatalogView() {
   }));
 
   const cpuCoolers: PublicCpuCooler[] = listCpuCoolers().map((cooler) => ({
+    ...resolvePreorderPrice("cpu_cooler", cooler.id, cooler.price_eur),
     id: cooler.id,
     name: cooler.name,
     brand: cooler.brand,

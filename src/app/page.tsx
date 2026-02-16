@@ -4,6 +4,8 @@ import { ProfileBuildsBrowser } from "@/components/profile-builds-browser";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 
+export const revalidate = 3600;
+
 export default function Home() {
   const profileCards = [
     {
@@ -85,6 +87,9 @@ export default function Home() {
             This is a preorder site. Every order is built, assembled, and fully configured after purchase based on
             your selected build profile.
           </p>
+          <p className="mt-2 max-w-3xl text-sm text-[color:var(--muted)]">
+            Prices are recalculated daily from Estonian listings and include a 15% assembly/setup margin.
+          </p>
         </header>
 
         <ProfileBuildsBrowser profiles={profileCards} builds={browserBuilds} />
@@ -102,7 +107,7 @@ export default function Home() {
                   <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                     {gpu.brand} | {gpu.vramGb}GB VRAM | {gpu.architecture} | AI {gpu.aiScore}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{gpu.priceEur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{gpu.preorderPriceEur}</p>
                 </div>
               ))}
             </div>
@@ -120,7 +125,7 @@ export default function Home() {
                   <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                     {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.aiScore}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{cpu.priceEur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cpu.preorderPriceEur}</p>
                 </div>
               ))}
             </div>
@@ -145,7 +150,7 @@ export default function Home() {
                 </p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">LLM fit: {prebuilt.llmMaxModelSize}</p>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="font-semibold">€{prebuilt.priceEur}</span>
+                  <span className="font-semibold">Preorder €{prebuilt.preorderPriceEur}</span>
                   <span className="label-pill">{prebuilt.inStock ? "In Stock" : "Out of Stock"}</span>
                 </div>
               </article>
@@ -167,7 +172,7 @@ export default function Home() {
                     {ramKit.modules} | {ramKit.ddrGen} {ramKit.speedMtS} | {ramKit.casLatency}
                   </p>
                   <p className="font-mono text-xs text-[color:var(--muted)]">Profiles: {ramKit.profileSupport}</p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{ramKit.priceEur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{ramKit.preorderPriceEur}</p>
                 </div>
               ))}
             </div>
@@ -188,7 +193,7 @@ export default function Home() {
                   <p className="font-mono text-xs text-[color:var(--muted)]">
                     Max memory: {motherboard.maxMemoryGb}GB | PCIe Gen5: {motherboard.pcieGen5Support ? "Yes" : "No"}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{motherboard.priceEur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{motherboard.preorderPriceEur}</p>
                 </div>
               ))}
             </div>
@@ -211,7 +216,7 @@ export default function Home() {
                   <p className="font-mono text-xs text-[color:var(--muted)]">
                     {psu.modularity} | 12V-2x6/PCIe5: {psu.pcie5Support ? "Supported" : "No"}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{psu.priceEur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{psu.preorderPriceEur}</p>
                 </div>
               ))}
             </div>
@@ -232,7 +237,7 @@ export default function Home() {
                   <p className="font-mono text-xs text-[color:var(--muted)]">
                     Radiator: {pcCase.radiatorSupport} | Fans: {pcCase.includedFans}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{pcCase.priceEur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{pcCase.preorderPriceEur}</p>
                 </div>
               ))}
             </div>
@@ -255,7 +260,7 @@ export default function Home() {
                   <p className="font-mono text-xs text-[color:var(--muted)]">
                     Read: {drive.seqReadMbS} MB/s | TBW: {drive.enduranceTbw === 0 ? "n/a" : drive.enduranceTbw}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{drive.priceEur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{drive.preorderPriceEur}</p>
                 </div>
               ))}
             </div>
@@ -276,7 +281,7 @@ export default function Home() {
                   <p className="font-mono text-xs text-[color:var(--muted)]">
                     Sockets: {cooler.socketSupport} | Noise: {cooler.noiseDb}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{cooler.priceEur}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cooler.preorderPriceEur}</p>
                 </div>
               ))}
             </div>
@@ -299,7 +304,7 @@ export default function Home() {
                 <p className="font-mono text-xs text-[color:var(--muted)]">Storage: {system.storageGb}GB SSD</p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">Software: {system.installedSoftware}</p>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="font-semibold">€{system.priceEur}</span>
+                  <span className="font-semibold">Preorder €{system.preorderPriceEur}</span>
                   <span className="label-pill">{system.inStock ? "In Stock" : "Out of Stock"}</span>
                 </div>
               </article>

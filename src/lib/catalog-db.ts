@@ -135,6 +135,20 @@ export type CpuCoolerRecord = {
   source_refs: string;
 };
 
+export type EstonianPriceCheckRecord = {
+  id: number;
+  category: string;
+  item_id: number;
+  item_name: string;
+  base_price_eur: number;
+  market_avg_eur: number;
+  assembly_markup_pct: number;
+  final_price_eur: number;
+  sample_count: number;
+  sources: string;
+  checked_at: string;
+};
+
 export type ProfileBuildRecord = {
   id: number;
   profile_key: string;
@@ -2310,6 +2324,21 @@ function initDatabase(): DatabaseSync {
       source_refs TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS estonian_price_checks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      category TEXT NOT NULL,
+      item_id INTEGER NOT NULL,
+      item_name TEXT NOT NULL,
+      base_price_eur INTEGER NOT NULL,
+      market_avg_eur REAL NOT NULL,
+      assembly_markup_pct REAL NOT NULL DEFAULT 15.0,
+      final_price_eur REAL NOT NULL,
+      sample_count INTEGER NOT NULL,
+      sources TEXT NOT NULL,
+      checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(category, item_id)
+    );
+
     CREATE TABLE IF NOT EXISTS profile_builds (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       profile_key TEXT NOT NULL,
@@ -2511,6 +2540,55 @@ export function listCpuCoolers(): CpuCoolerRecord[] {
       "SELECT id, name, brand, cooler_type, radiator_or_height_mm, socket_support, max_tdp_w, noise_db, price_eur, source_refs FROM cpu_coolers ORDER BY max_tdp_w DESC",
     )
     .all() as CpuCoolerRecord[];
+}
+
+export function listEstonianPriceChecks(): EstonianPriceCheckRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, category, item_id, item_name, base_price_eur, market_avg_eur, assembly_markup_pct, final_price_eur, sample_count, sources, checked_at FROM estonian_price_checks",
+    )
+    .all() as EstonianPriceCheckRecord[];
+}
+
+export function upsertEstonianPriceCheck(input: {
+  category: string;
+  itemId: number;
+  itemName: string;
+  basePriceEur: number;
+  marketAvgEur: number;
+  assemblyMarkupPct: number;
+  finalPriceEur: number;
+  sampleCount: number;
+  sources: string;
+}): void {
+  const db = getDb();
+  db.prepare(
+    `
+    INSERT INTO estonian_price_checks
+      (category, item_id, item_name, base_price_eur, market_avg_eur, assembly_markup_pct, final_price_eur, sample_count, sources, checked_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(category, item_id) DO UPDATE SET
+      item_name = excluded.item_name,
+      base_price_eur = excluded.base_price_eur,
+      market_avg_eur = excluded.market_avg_eur,
+      assembly_markup_pct = excluded.assembly_markup_pct,
+      final_price_eur = excluded.final_price_eur,
+      sample_count = excluded.sample_count,
+      sources = excluded.sources,
+      checked_at = CURRENT_TIMESTAMP
+  `,
+  ).run(
+    input.category,
+    input.itemId,
+    input.itemName,
+    input.basePriceEur,
+    input.marketAvgEur,
+    input.assemblyMarkupPct,
+    input.finalPriceEur,
+    input.sampleCount,
+    input.sources,
+  );
 }
 
 export function listProfileBuilds(): ProfileBuildRecord[] {

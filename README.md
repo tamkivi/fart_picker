@@ -75,6 +75,7 @@ The project includes a `Next.js + TypeScript + Tailwind CSS` frontend with produ
 - Compatibility check panel
 - LLM capability mode output
 - Saved build snapshot + export CTA
+- Daily Estonian market pricing refresh (average listing price + 15% assembly/setup)
 
 ## Run Locally
 ```bash
@@ -104,3 +105,11 @@ Then open `http://localhost:3000`.
 - `STRIPE_WEBHOOK_SECRET` required for webhook signature verification
 - `NEXT_PUBLIC_APP_URL` required for Stripe success/cancel return URLs
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM_EMAIL` for payment confirmation emails
+- `CRON_SECRET` to authorize manual cron calls
+- `ESTONIAN_PRICE_MAX_ITEMS` max components to evaluate per cron run
+- `ESTONIAN_PRICE_CONCURRENCY` concurrent outbound listing checks
+
+## Daily Estonian Price Refresh
+- Vercel cron runs `/api/cron/estonian-pricing` once daily (`03:00 UTC`) via `vercel.json`.
+- The job checks Estonian store/search listings, computes per-part market average, then applies a 15% assembly/setup markup.
+- Updated preorder prices are written into `estonian_price_checks` and displayed on the homepage.
