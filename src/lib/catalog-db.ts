@@ -84,6 +84,18 @@ const globalForCatalogDb = globalThis as unknown as {
 const SESSION_DAYS = 7;
 const ADMIN_EMAIL = "gustavpaul@tamkivi.com";
 
+function resolveDataDir(): string {
+  if (process.env.FART_PICKER_DATA_DIR) {
+    return process.env.FART_PICKER_DATA_DIR;
+  }
+
+  if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+    return "/tmp/fart_picker_data";
+  }
+
+  return join(process.cwd(), "data");
+}
+
 function toPublicUser(user: DbUserRecord): PublicUser {
   return {
     id: user.id,
@@ -1050,7 +1062,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
 }
 
 function initDatabase(): DatabaseSync {
-  const dataDir = join(process.cwd(), "data");
+  const dataDir = resolveDataDir();
   mkdirSync(dataDir, { recursive: true });
 
   const db = new DatabaseSync(join(dataDir, "catalog.db"));
