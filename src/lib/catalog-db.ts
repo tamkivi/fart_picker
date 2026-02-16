@@ -2329,33 +2329,102 @@ function seedProfileBuilds(db: DatabaseSync): void {
     },
   ];
 
-  function deriveBuildDetails(build: (typeof buildRows)[number]) {
-    if (build.estimatedPriceEur >= 2800) {
+  const cpuSpecStatement = db.prepare("SELECT socket, tdp_watts, price_eur FROM cpus WHERE id = ? LIMIT 1");
+  const gpuSpecStatement = db.prepare("SELECT tdp_watts, price_eur FROM gpus WHERE id = ? LIMIT 1");
+  const ramPriceStatement = db.prepare(
+    "SELECT price_eur FROM ram_kits WHERE capacity_gb >= ? ORDER BY capacity_gb ASC, price_eur ASC LIMIT 1",
+  );
+  const ramFallbackPriceStatement = db.prepare("SELECT price_eur FROM ram_kits ORDER BY capacity_gb DESC, price_eur ASC LIMIT 1");
+  const storagePriceStatement = db.prepare(
+    "SELECT price_eur FROM storage_drives WHERE capacity_gb >= ? ORDER BY capacity_gb ASC, price_eur ASC LIMIT 1",
+  );
+  const storageFallbackPriceStatement = db.prepare(
+    "SELECT price_eur FROM storage_drives ORDER BY capacity_gb DESC, price_eur ASC LIMIT 1",
+  );
+  const motherboardPriceStatement = db.prepare(
+    "SELECT price_eur FROM motherboards WHERE socket = ? ORDER BY price_eur ASC LIMIT 1",
+  );
+  const motherboardFallbackPriceStatement = db.prepare("SELECT price_eur FROM motherboards ORDER BY price_eur ASC LIMIT 1");
+  const psuPriceStatement = db.prepare(
+    "SELECT price_eur FROM power_supplies WHERE wattage >= ? ORDER BY wattage ASC, price_eur ASC LIMIT 1",
+  );
+  const psuFallbackPriceStatement = db.prepare("SELECT price_eur FROM power_supplies ORDER BY wattage DESC, price_eur ASC LIMIT 1");
+  const casePriceStatement = db.prepare("SELECT price_eur FROM pc_cases ORDER BY price_eur ASC LIMIT 1");
+
+  function computeBuildEstimatedPrice(build: (typeof buildRows)[number]) {
+    const cpu = cpuSpecStatement.get(build.cpuId) as { socket: string; tdp_watts: number; price_eur: number } | undefined;
+    const gpu = gpuSpecStatement.get(build.gpuId) as { tdp_watts: number; price_eur: number } | undefined;
+
+    if (!cpu || !gpu) {
+      return {
+        estimatedPriceEur: build.estimatedPriceEur,
+        estimatedSystemPowerW: build.estimatedSystemPowerW ?? 520,
+        recommendedPsuW: build.recommendedPsuW ?? 750,
+      };
+    }
+
+    const ramPrice =
+      (ramPriceStatement.get(build.ramGb) as { price_eur?: number } | undefined)?.price_eur ??
+      (ramFallbackPriceStatement.get() as { price_eur?: number } | undefined)?.price_eur ??
+      0;
+    const storagePrice =
+      (storagePriceStatement.get(build.storageGb) as { price_eur?: number } | undefined)?.price_eur ??
+      (storageFallbackPriceStatement.get() as { price_eur?: number } | undefined)?.price_eur ??
+      0;
+    const motherboardPrice =
+      (motherboardPriceStatement.get(cpu.socket) as { price_eur?: number } | undefined)?.price_eur ??
+      (motherboardFallbackPriceStatement.get() as { price_eur?: number } | undefined)?.price_eur ??
+      0;
+    const estimatedSystemPowerW = Math.round(cpu.tdp_watts + gpu.tdp_watts + 120);
+    const recommendedPsuW = Math.max(650, Math.ceil((estimatedSystemPowerW * 1.35) / 50) * 50);
+    const psuPrice =
+      (psuPriceStatement.get(recommendedPsuW) as { price_eur?: number } | undefined)?.price_eur ??
+      (psuFallbackPriceStatement.get() as { price_eur?: number } | undefined)?.price_eur ??
+      0;
+    const casePrice = (casePriceStatement.get() as { price_eur?: number } | undefined)?.price_eur ?? 0;
+
+    const subtotalEur = cpu.price_eur + gpu.price_eur + ramPrice + motherboardPrice + storagePrice + psuPrice + casePrice;
+    const estimatedPriceEur = Math.round(subtotalEur * 1.15);
+
+    return {
+      estimatedPriceEur: Math.max(estimatedPriceEur, 1),
+      estimatedSystemPowerW,
+      recommendedPsuW,
+    };
+  }
+
+  function deriveBuildDetails(
+    build: (typeof buildRows)[number],
+    estimatedPriceEur: number,
+    estimatedSystemPowerW: number,
+    recommendedPsuW: number,
+  ) {
+    if (estimatedPriceEur >= 2800) {
       return {
         bestFor: build.bestFor ?? "Large local model sessions and workstation-grade multitasking",
         estimatedTokensPerSec: build.estimatedTokensPerSec ?? "13B q4: 55-85 tok/s | 34B q4: 18-30 tok/s",
-        estimatedSystemPowerW: build.estimatedSystemPowerW ?? 760,
-        recommendedPsuW: build.recommendedPsuW ?? 1000,
+        estimatedSystemPowerW: build.estimatedSystemPowerW ?? estimatedSystemPowerW,
+        recommendedPsuW: build.recommendedPsuW ?? Math.max(recommendedPsuW, 1000),
         coolingProfile: build.coolingProfile ?? "Premium 360mm AIO + high airflow case",
       };
     }
 
-    if (build.estimatedPriceEur >= 2000) {
+    if (estimatedPriceEur >= 2000) {
       return {
         bestFor: build.bestFor ?? "Daily AI development and strong local inference throughput",
         estimatedTokensPerSec: build.estimatedTokensPerSec ?? "13B q4: 40-65 tok/s | 34B q4: 12-22 tok/s",
-        estimatedSystemPowerW: build.estimatedSystemPowerW ?? 620,
-        recommendedPsuW: build.recommendedPsuW ?? 850,
+        estimatedSystemPowerW: build.estimatedSystemPowerW ?? estimatedSystemPowerW,
+        recommendedPsuW: build.recommendedPsuW ?? Math.max(recommendedPsuW, 850),
         coolingProfile: build.coolingProfile ?? "Dual-tower air or 280mm AIO",
       };
     }
 
-    if (build.estimatedPriceEur >= 1600) {
+    if (estimatedPriceEur >= 1600) {
       return {
         bestFor: build.bestFor ?? "Midrange local inference and mixed creator workloads",
         estimatedTokensPerSec: build.estimatedTokensPerSec ?? "13B q4: 28-48 tok/s | 34B q4: 8-15 tok/s",
-        estimatedSystemPowerW: build.estimatedSystemPowerW ?? 520,
-        recommendedPsuW: build.recommendedPsuW ?? 750,
+        estimatedSystemPowerW: build.estimatedSystemPowerW ?? estimatedSystemPowerW,
+        recommendedPsuW: build.recommendedPsuW ?? Math.max(recommendedPsuW, 750),
         coolingProfile: build.coolingProfile ?? "Balanced airflow with quality air cooler",
       };
     }
@@ -2363,8 +2432,8 @@ function seedProfileBuilds(db: DatabaseSync): void {
     return {
       bestFor: build.bestFor ?? "Entry local AI experimentation and fast iteration",
       estimatedTokensPerSec: build.estimatedTokensPerSec ?? "7B q4: 40-70 tok/s | 13B q4: 20-35 tok/s",
-      estimatedSystemPowerW: build.estimatedSystemPowerW ?? 420,
-      recommendedPsuW: build.recommendedPsuW ?? 650,
+      estimatedSystemPowerW: build.estimatedSystemPowerW ?? estimatedSystemPowerW,
+      recommendedPsuW: build.recommendedPsuW ?? Math.max(recommendedPsuW, 650),
       coolingProfile: build.coolingProfile ?? "Standard tower air cooling",
     };
   }
@@ -2379,7 +2448,13 @@ function seedProfileBuilds(db: DatabaseSync): void {
       );
 
   buildRows.forEach((build) => {
-    const details = deriveBuildDetails(build);
+    const computedPricing = computeBuildEstimatedPrice(build);
+    const details = deriveBuildDetails(
+      build,
+      computedPricing.estimatedPriceEur,
+      computedPricing.estimatedSystemPowerW,
+      computedPricing.recommendedPsuW,
+    );
     if (hasLegacyUsd) {
       insertStatement.run(
         build.profileKey,
@@ -2388,8 +2463,8 @@ function seedProfileBuilds(db: DatabaseSync): void {
         build.targetModel,
         build.ramGb,
         build.storageGb,
-        build.estimatedPriceEur,
-        Math.round(build.estimatedPriceEur / 0.84),
+        computedPricing.estimatedPriceEur,
+        Math.round(computedPricing.estimatedPriceEur / 0.84),
         details.bestFor,
         details.estimatedTokensPerSec,
         details.estimatedSystemPowerW,
@@ -2408,7 +2483,7 @@ function seedProfileBuilds(db: DatabaseSync): void {
         build.targetModel,
         build.ramGb,
         build.storageGb,
-        build.estimatedPriceEur,
+        computedPricing.estimatedPriceEur,
         details.bestFor,
         details.estimatedTokensPerSec,
         details.estimatedSystemPowerW,
