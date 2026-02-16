@@ -861,7 +861,7 @@ function seedCatalog(db: DatabaseSync): void {
 
   ensurePrebuilt(db, {
     name: "Nebula Forge XL",
-    vendor: "fart_picker Labs",
+    vendor: "AI Build Works",
     description: "High-end local LLM workstation for 34B+ quantized models.",
     priceEur: 3349,
     ramGb: 128,
@@ -873,7 +873,7 @@ function seedCatalog(db: DatabaseSync): void {
   });
   ensurePrebuilt(db, {
     name: "Vector Home Pro",
-    vendor: "fart_picker Labs",
+    vendor: "AI Build Works",
     description: "Balanced AI dev tower for daily coding and local inference.",
     priceEur: 2099,
     ramGb: 64,
@@ -885,7 +885,7 @@ function seedCatalog(db: DatabaseSync): void {
   });
   ensurePrebuilt(db, {
     name: "Redline Studio AI",
-    vendor: "fart_picker Labs",
+    vendor: "AI Build Works",
     description: "VRAM-heavy AMD option for open-source inference stacks.",
     priceEur: 1999,
     ramGb: 64,
@@ -897,7 +897,7 @@ function seedCatalog(db: DatabaseSync): void {
   });
   ensurePrebuilt(db, {
     name: "Creator Edge 16",
-    vendor: "fart_picker Labs",
+    vendor: "AI Build Works",
     description: "Creator/gaming hybrid with strong CUDA inference support.",
     priceEur: 1899,
     ramGb: 64,
@@ -909,7 +909,7 @@ function seedCatalog(db: DatabaseSync): void {
   });
   ensurePrebuilt(db, {
     name: "Inference Compact",
-    vendor: "fart_picker Labs",
+    vendor: "AI Build Works",
     description: "Power-efficient desktop for 7B-13B local models.",
     priceEur: 1329,
     ramGb: 32,
@@ -921,7 +921,7 @@ function seedCatalog(db: DatabaseSync): void {
   });
   ensurePrebuilt(db, {
     name: "Raster AI Midrange",
-    vendor: "fart_picker Labs",
+    vendor: "AI Build Works",
     description: "Balanced AMD raster and local inference setup.",
     priceEur: 1599,
     ramGb: 64,
@@ -933,7 +933,7 @@ function seedCatalog(db: DatabaseSync): void {
   });
   ensurePrebuilt(db, {
     name: "Stable Dev Box",
-    vendor: "fart_picker Labs",
+    vendor: "AI Build Works",
     description: "Reliable day-to-day AI coding machine with quiet thermals.",
     priceEur: 1749,
     ramGb: 64,
