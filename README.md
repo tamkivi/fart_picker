@@ -1,9 +1,9 @@
-# fart_picker
+# AI Build Picker
 
 A web app for building PC configurations optimized for AI and local LLM workloads.
 
 ## Overview
-`fart_picker` helps users choose compatible PC parts with a focus on machine learning and inference performance. Instead of generic gaming recommendations, this platform prioritizes components that matter most for AI use cases such as local LLM hosting, fine-tuning, and accelerated data workflows.
+This project helps users choose compatible PC parts with a focus on machine learning and inference performance. Instead of generic gaming recommendations, the platform prioritizes components that matter most for AI use cases such as local LLM hosting, fine-tuning, and accelerated data workflows.
 
 ## Target Users
 - AI enthusiasts running local language models
@@ -68,8 +68,8 @@ Each suggested part includes plain-language rationale:
 ## Mission
 Make AI-capable PC building practical, transparent, and accessible by translating complex hardware constraints into clear, actionable recommendations.
 
-## Wireframe Status
-The project now includes a `Next.js + TypeScript + Tailwind CSS` frontend scaffold with homepage wireframes for:
+## Current App Scope
+The project includes a `Next.js + TypeScript + Tailwind CSS` frontend with production-ready catalog and account/payment flows for:
 - AI build profile selection
 - Parts recommendation table with AI scoring
 - Compatibility check panel
@@ -97,10 +97,8 @@ Then open `http://localhost:3000`.
 - Secure password hashing via Node `scrypt`
 - HTTP-only cookie sessions
 - Roles: `USER`, `DEV`, `ADMIN`
-- The only permitted admin email is `gustavpaul@tamkivi.com`
-
 ### Optional environment variables
-- `ADMIN_SETUP_CODE` required to create the admin account for `gustavpaul@tamkivi.com`
+- `ADMIN_SETUP_CODE` required to create the admin account
 - `DATABASE_URL` strongly recommended in production for persistent accounts/sessions/orders
 - `STRIPE_SECRET_KEY` required for checkout session creation
 - `STRIPE_WEBHOOK_SECRET` required for webhook signature verification

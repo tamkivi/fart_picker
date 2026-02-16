@@ -3,6 +3,7 @@ import {
   getProfileBuildById,
   listCases,
   listCompactAiSystems,
+  listCpuCoolers,
   listCpus,
   listGpus,
   listMotherboards,
@@ -10,6 +11,7 @@ import {
   listPrebuilts,
   listProfileBuilds,
   listRamKits,
+  listStorageDrives,
 } from "@/lib/catalog-db";
 
 export type PublicGpu = {
@@ -106,6 +108,30 @@ export type PublicCompactAiSystem = {
   installedSoftware: string;
   bestFor: string;
   inStock: boolean;
+  priceEur: number;
+};
+
+export type PublicStorageDrive = {
+  id: number;
+  name: string;
+  brand: string;
+  driveType: string;
+  interface: string;
+  capacityGb: number;
+  seqReadMbS: number;
+  enduranceTbw: number;
+  priceEur: number;
+};
+
+export type PublicCpuCooler = {
+  id: number;
+  name: string;
+  brand: string;
+  coolerType: string;
+  radiatorOrHeightMm: number;
+  socketSupport: string;
+  maxTdpW: number;
+  noiseDb: string;
   priceEur: number;
 };
 
@@ -247,7 +273,43 @@ export function getHomeCatalogView() {
     priceEur: system.price_eur,
   }));
 
-  return { gpus, cpus, prebuilts, ramKits, powerSupplies, cases, motherboards, compactAiSystems, profileBuilds };
+  const storageDrives: PublicStorageDrive[] = listStorageDrives().map((drive) => ({
+    id: drive.id,
+    name: drive.name,
+    brand: drive.brand,
+    driveType: drive.drive_type,
+    interface: drive.interface,
+    capacityGb: drive.capacity_gb,
+    seqReadMbS: drive.seq_read_mb_s,
+    enduranceTbw: drive.endurance_tbw,
+    priceEur: drive.price_eur,
+  }));
+
+  const cpuCoolers: PublicCpuCooler[] = listCpuCoolers().map((cooler) => ({
+    id: cooler.id,
+    name: cooler.name,
+    brand: cooler.brand,
+    coolerType: cooler.cooler_type,
+    radiatorOrHeightMm: cooler.radiator_or_height_mm,
+    socketSupport: cooler.socket_support,
+    maxTdpW: cooler.max_tdp_w,
+    noiseDb: cooler.noise_db,
+    priceEur: cooler.price_eur,
+  }));
+
+  return {
+    gpus,
+    cpus,
+    prebuilts,
+    ramKits,
+    powerSupplies,
+    cases,
+    motherboards,
+    compactAiSystems,
+    storageDrives,
+    cpuCoolers,
+    profileBuilds,
+  };
 }
 
 export function getBuildDetailView(buildId: number): PublicProfileBuild | null {

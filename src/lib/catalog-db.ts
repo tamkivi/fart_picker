@@ -109,6 +109,32 @@ export type CompactAiSystemRecord = {
   source_refs: string;
 };
 
+export type StorageDriveRecord = {
+  id: number;
+  name: string;
+  brand: string;
+  drive_type: string;
+  interface: string;
+  capacity_gb: number;
+  seq_read_mb_s: number;
+  endurance_tbw: number;
+  price_eur: number;
+  source_refs: string;
+};
+
+export type CpuCoolerRecord = {
+  id: number;
+  name: string;
+  brand: string;
+  cooler_type: string;
+  radiator_or_height_mm: number;
+  socket_support: string;
+  max_tdp_w: number;
+  noise_db: string;
+  price_eur: number;
+  source_refs: string;
+};
+
 export type ProfileBuildRecord = {
   id: number;
   profile_key: string;
@@ -863,6 +889,90 @@ function ensureCompactAiSystem(
   );
 }
 
+function ensureStorageDrive(
+  db: DatabaseSync,
+  drive: {
+    name: string;
+    brand: string;
+    driveType: string;
+    interface: string;
+    capacityGb: number;
+    seqReadMbS: number;
+    enduranceTbw: number;
+    priceEur: number;
+    sourceRefs: string;
+  },
+): void {
+  db.prepare(
+    `
+    INSERT INTO storage_drives
+      (name, brand, drive_type, interface, capacity_gb, seq_read_mb_s, endurance_tbw, price_eur, source_refs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      brand = excluded.brand,
+      drive_type = excluded.drive_type,
+      interface = excluded.interface,
+      capacity_gb = excluded.capacity_gb,
+      seq_read_mb_s = excluded.seq_read_mb_s,
+      endurance_tbw = excluded.endurance_tbw,
+      price_eur = excluded.price_eur,
+      source_refs = excluded.source_refs
+  `,
+  ).run(
+    drive.name,
+    drive.brand,
+    drive.driveType,
+    drive.interface,
+    drive.capacityGb,
+    drive.seqReadMbS,
+    drive.enduranceTbw,
+    drive.priceEur,
+    drive.sourceRefs,
+  );
+}
+
+function ensureCpuCooler(
+  db: DatabaseSync,
+  cooler: {
+    name: string;
+    brand: string;
+    coolerType: string;
+    radiatorOrHeightMm: number;
+    socketSupport: string;
+    maxTdpW: number;
+    noiseDb: string;
+    priceEur: number;
+    sourceRefs: string;
+  },
+): void {
+  db.prepare(
+    `
+    INSERT INTO cpu_coolers
+      (name, brand, cooler_type, radiator_or_height_mm, socket_support, max_tdp_w, noise_db, price_eur, source_refs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      brand = excluded.brand,
+      cooler_type = excluded.cooler_type,
+      radiator_or_height_mm = excluded.radiator_or_height_mm,
+      socket_support = excluded.socket_support,
+      max_tdp_w = excluded.max_tdp_w,
+      noise_db = excluded.noise_db,
+      price_eur = excluded.price_eur,
+      source_refs = excluded.source_refs
+  `,
+  ).run(
+    cooler.name,
+    cooler.brand,
+    cooler.coolerType,
+    cooler.radiatorOrHeightMm,
+    cooler.socketSupport,
+    cooler.maxTdpW,
+    cooler.noiseDb,
+    cooler.priceEur,
+    cooler.sourceRefs,
+  );
+}
+
 function seedCatalog(db: DatabaseSync): void {
   const gpuSeed = [
     {
@@ -1461,6 +1571,122 @@ function seedCatalog(db: DatabaseSync): void {
     },
   ];
 
+  const storageDriveSeed = [
+    {
+      name: "Samsung 990 PRO 2TB",
+      brand: "Samsung",
+      driveType: "NVMe SSD",
+      interface: "PCIe 4.0 x4",
+      capacityGb: 2000,
+      seqReadMbS: 7450,
+      enduranceTbw: 1200,
+      priceEur: 179,
+      sourceRefs: "https://semiconductor.samsung.com/consumer-storage/internal-ssd/990-pro/",
+    },
+    {
+      name: "WD Black SN850X 2TB",
+      brand: "Western Digital",
+      driveType: "NVMe SSD",
+      interface: "PCIe 4.0 x4",
+      capacityGb: 2000,
+      seqReadMbS: 7300,
+      enduranceTbw: 1200,
+      priceEur: 169,
+      sourceRefs: "https://www.westerndigital.com/products/internal-drives/wd-black-sn850x-nvme-ssd",
+    },
+    {
+      name: "Crucial T705 2TB",
+      brand: "Crucial",
+      driveType: "NVMe SSD",
+      interface: "PCIe 5.0 x4",
+      capacityGb: 2000,
+      seqReadMbS: 14500,
+      enduranceTbw: 1200,
+      priceEur: 299,
+      sourceRefs: "https://www.crucial.com/ssd/t705/ct2000t705ssd3",
+    },
+    {
+      name: "Solidigm P44 Pro 2TB",
+      brand: "Solidigm",
+      driveType: "NVMe SSD",
+      interface: "PCIe 4.0 x4",
+      capacityGb: 2000,
+      seqReadMbS: 7000,
+      enduranceTbw: 1200,
+      priceEur: 149,
+      sourceRefs: "https://www.solidigm.com/products/client/d6/p44-pro.html",
+    },
+    {
+      name: "Seagate IronWolf Pro 8TB",
+      brand: "Seagate",
+      driveType: "HDD",
+      interface: "SATA 6Gb/s",
+      capacityGb: 8000,
+      seqReadMbS: 285,
+      enduranceTbw: 0,
+      priceEur: 229,
+      sourceRefs: "https://www.seagate.com/products/nas-drives/ironwolf-hard-drive/",
+    },
+  ];
+
+  const cpuCoolerSeed = [
+    {
+      name: "Noctua NH-D15 G2",
+      brand: "Noctua",
+      coolerType: "Air",
+      radiatorOrHeightMm: 168,
+      socketSupport: "AM5, LGA1700, LGA1851",
+      maxTdpW: 280,
+      noiseDb: "19-24 dBA",
+      priceEur: 149,
+      sourceRefs: "https://noctua.at/en/nh-d15-g2",
+    },
+    {
+      name: "DeepCool AK620",
+      brand: "DeepCool",
+      coolerType: "Air",
+      radiatorOrHeightMm: 160,
+      socketSupport: "AM5, LGA1700",
+      maxTdpW: 260,
+      noiseDb: "28 dBA max",
+      priceEur: 69,
+      sourceRefs: "https://www.deepcool.com/products/Cooling/cpuaircoolers/AK620-Dual-Tower-CPU-Cooler-1700-AM5/2021/13067.shtml",
+    },
+    {
+      name: "Arctic Liquid Freezer III 360",
+      brand: "Arctic",
+      coolerType: "AIO",
+      radiatorOrHeightMm: 360,
+      socketSupport: "AM5, LGA1700",
+      maxTdpW: 320,
+      noiseDb: "22.5 dBA typical",
+      priceEur: 119,
+      sourceRefs: "https://www.arctic.de/en/Liquid-Freezer-III-360/",
+    },
+    {
+      name: "Corsair iCUE LINK H150i RGB",
+      brand: "Corsair",
+      coolerType: "AIO",
+      radiatorOrHeightMm: 360,
+      socketSupport: "AM5, LGA1700, LGA1851",
+      maxTdpW: 300,
+      noiseDb: "20-37 dBA",
+      priceEur: 249,
+      sourceRefs: "https://www.corsair.com/us/en/p/cpu-coolers/cw-9061003-ww/icue-link-h150i-rgb-aio-liquid-cpu-cooler-cw-9061003-ww",
+    },
+    {
+      name: "Thermalright Phantom Spirit 120 SE",
+      brand: "Thermalright",
+      coolerType: "Air",
+      radiatorOrHeightMm: 157,
+      socketSupport: "AM5, LGA1700",
+      maxTdpW: 240,
+      noiseDb: "25 dBA max",
+      priceEur: 45,
+      sourceRefs: "https://www.thermalright.com/product/phantom-spirit-120-se/",
+    },
+  ];
+
   gpuSeed.forEach((gpu) => {
     ensureGpu(db, gpu);
   });
@@ -1487,6 +1713,14 @@ function seedCatalog(db: DatabaseSync): void {
 
   compactSystemSeed.forEach((compactSystem) => {
     ensureCompactAiSystem(db, compactSystem);
+  });
+
+  storageDriveSeed.forEach((drive) => {
+    ensureStorageDrive(db, drive);
+  });
+
+  cpuCoolerSeed.forEach((cooler) => {
+    ensureCpuCooler(db, cooler);
   });
 
   const cpu7900 = db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 7900' LIMIT 1").get() as { id: number };
@@ -2050,6 +2284,32 @@ function initDatabase(): DatabaseSync {
       source_refs TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS storage_drives (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      brand TEXT NOT NULL,
+      drive_type TEXT NOT NULL,
+      interface TEXT NOT NULL,
+      capacity_gb INTEGER NOT NULL,
+      seq_read_mb_s INTEGER NOT NULL,
+      endurance_tbw INTEGER NOT NULL,
+      price_eur INTEGER NOT NULL,
+      source_refs TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS cpu_coolers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      brand TEXT NOT NULL,
+      cooler_type TEXT NOT NULL,
+      radiator_or_height_mm INTEGER NOT NULL,
+      socket_support TEXT NOT NULL,
+      max_tdp_w INTEGER NOT NULL,
+      noise_db TEXT NOT NULL,
+      price_eur INTEGER NOT NULL,
+      source_refs TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS profile_builds (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       profile_key TEXT NOT NULL,
@@ -2233,6 +2493,24 @@ export function listCompactAiSystems(): CompactAiSystemRecord[] {
       "SELECT id, name, vendor, chip, memory_gb, storage_gb, gpu_class, installed_software, best_for, price_eur, in_stock, source_refs FROM compact_ai_systems ORDER BY price_eur DESC",
     )
     .all() as CompactAiSystemRecord[];
+}
+
+export function listStorageDrives(): StorageDriveRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, name, brand, drive_type, interface, capacity_gb, seq_read_mb_s, endurance_tbw, price_eur, source_refs FROM storage_drives ORDER BY drive_type ASC, seq_read_mb_s DESC",
+    )
+    .all() as StorageDriveRecord[];
+}
+
+export function listCpuCoolers(): CpuCoolerRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, name, brand, cooler_type, radiator_or_height_mm, socket_support, max_tdp_w, noise_db, price_eur, source_refs FROM cpu_coolers ORDER BY max_tdp_w DESC",
+    )
+    .all() as CpuCoolerRecord[];
 }
 
 export function listProfileBuilds(): ProfileBuildRecord[] {

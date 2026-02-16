@@ -26,8 +26,19 @@ export default function Home() {
     },
   ];
 
-  const { gpus, cpus, prebuilts, ramKits, powerSupplies, cases, motherboards, compactAiSystems, profileBuilds } =
-    getHomeCatalogView();
+  const {
+    gpus,
+    cpus,
+    prebuilts,
+    ramKits,
+    powerSupplies,
+    cases,
+    motherboards,
+    compactAiSystems,
+    storageDrives,
+    cpuCoolers,
+    profileBuilds,
+  } = getHomeCatalogView();
   const browserBuilds = profileBuilds.map((build) => ({
     id: build.id,
     profile_key: build.profileKey,
@@ -222,6 +233,50 @@ export default function Home() {
                     Radiator: {pcCase.radiatorSupport} | Fans: {pcCase.includedFans}
                   </p>
                   <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{pcCase.priceEur}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "970ms" }}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-3xl font-semibold">Storage Drives</h3>
+              <span className="label-pill">{storageDrives.length} listed</span>
+            </div>
+            <div className="space-y-3">
+              {storageDrives.map((drive) => (
+                <div key={drive.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <p className="font-semibold">{drive.name}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    {drive.driveType} | {drive.interface} | {drive.capacityGb}GB
+                  </p>
+                  <p className="font-mono text-xs text-[color:var(--muted)]">
+                    Read: {drive.seqReadMbS} MB/s | TBW: {drive.enduranceTbw === 0 ? "n/a" : drive.enduranceTbw}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{drive.priceEur}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "1040ms" }}>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-3xl font-semibold">CPU Coolers</h3>
+              <span className="label-pill">{cpuCoolers.length} listed</span>
+            </div>
+            <div className="space-y-3">
+              {cpuCoolers.map((cooler) => (
+                <div key={cooler.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <p className="font-semibold">{cooler.name}</p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    {cooler.coolerType} | Size: {cooler.radiatorOrHeightMm}mm | Max TDP: {cooler.maxTdpW}W
+                  </p>
+                  <p className="font-mono text-xs text-[color:var(--muted)]">
+                    Sockets: {cooler.socketSupport} | Noise: {cooler.noiseDb}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">€{cooler.priceEur}</p>
                 </div>
               ))}
             </div>
