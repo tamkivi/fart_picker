@@ -30,7 +30,7 @@ type ProfileBuild = {
 };
 
 const categoryLabelByProfileKey: Record<string, string> = {
-  "local-llm-inference": "cost efficient Local LLMs",
+  "local-llm-inference": "Cost-Efficient Local LLMs",
   "llm-finetune-starter": "Tuning Stability",
   "hybrid-ai-gaming": "Multitasking",
 };
