@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 type AuthUser = {
   id: number;
@@ -24,6 +24,7 @@ export function AuthPanel() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   async function refreshMe() {
     const response = await fetch("/api/auth/me", { cache: "no-store" });
@@ -50,6 +51,35 @@ export function AuthPanel() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (target && dropdownRef.current && !dropdownRef.current.contains(target)) {
+        setOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
 
   async function handleRegister(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -123,7 +153,7 @@ export function AuthPanel() {
   }
 
   return (
-    <div className="relative z-[200]">
+    <div ref={dropdownRef} className="relative z-[200]">
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
@@ -155,14 +185,14 @@ export function AuthPanel() {
                 <button
                   type="button"
                   onClick={() => setMode("login")}
-                  className={`rounded-md px-3 py-1 text-sm ${mode === "login" ? "bg-[color:var(--accent-2)] text-white" : "bg-[#ece6da]"}`}
+                  className={`rounded-md border px-3 py-1 text-sm ${mode === "login" ? "border-transparent bg-[color:var(--accent-2)] text-white" : "border-[color:var(--panel-border)] bg-[color:var(--panel)] text-[color:var(--foreground)]"}`}
                 >
                   Login
                 </button>
                 <button
                   type="button"
                   onClick={() => setMode("register")}
-                  className={`rounded-md px-3 py-1 text-sm ${mode === "register" ? "bg-[color:var(--accent)] text-white" : "bg-[#ece6da]"}`}
+                  className={`rounded-md border px-3 py-1 text-sm ${mode === "register" ? "border-transparent bg-[color:var(--accent)] text-white" : "border-[color:var(--panel-border)] bg-[color:var(--panel)] text-[color:var(--foreground)]"}`}
                 >
                   Register
                 </button>
