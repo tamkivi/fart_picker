@@ -107,11 +107,17 @@ export default async function Home() {
           <p className="mt-2 max-w-3xl text-sm text-[color:var(--muted)]">
             {copy.pricingDescription}
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Link href="/faq" className="label-pill inline-block">
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <Link
+              href="/faq"
+              className="inline-block rounded-full bg-[color:var(--accent)] px-5 py-2.5 text-sm font-semibold text-white"
+            >
               Why AI-ready builds?
             </Link>
-            <Link href="/about" className="label-pill inline-block">
+            <Link
+              href="/about"
+              className="inline-block rounded-full bg-[color:var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-white"
+            >
               About us
             </Link>
           </div>

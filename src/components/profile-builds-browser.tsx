@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 type Profile = {
   key: string;
@@ -61,12 +61,6 @@ export function ProfileBuildsBrowser({
   const selectedBuild =
     activeBuilds.find((build) => build.id === selectedBuildId) ?? (activeBuilds.length > 0 ? activeBuilds[0] : null);
 
-  useEffect(() => {
-    if (activeProfileKey) {
-      possibleBuildsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [activeProfileKey]);
-
   return (
     <section className="mt-8">
       <p className="mb-4 text-sm font-semibold text-[color:var(--muted)]">
@@ -82,6 +76,9 @@ export function ProfileBuildsBrowser({
               onClick={() => {
                 setActiveProfileKey(profile.key);
                 setSelectedBuildId(buildsByProfile[profile.key]?.[0]?.id ?? null);
+                requestAnimationFrame(() => {
+                  possibleBuildsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
               }}
               className={`wireframe-panel stagger-in p-5 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
               style={{ animationDelay: `${index * 100}ms` }}
