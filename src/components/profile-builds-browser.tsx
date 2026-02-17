@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 type Profile = {
   key: string;
@@ -44,6 +44,7 @@ export function ProfileBuildsBrowser({
 }) {
   const [activeProfileKey, setActiveProfileKey] = useState(profiles[0]?.key ?? "");
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
+  const possibleBuildsRef = useRef<HTMLElement | null>(null);
 
   const buildsByProfile = useMemo(() => {
     return builds.reduce<Record<string, ProfileBuild[]>>((acc, build) => {
@@ -62,6 +63,9 @@ export function ProfileBuildsBrowser({
 
   return (
     <section className="mt-8">
+      <p className="mb-4 text-sm font-semibold text-[color:var(--muted)]">
+        Choose the type of build you&apos;re looking for:
+      </p>
       <div className="grid gap-6 md:grid-cols-3">
         {profiles.map((profile, index) => {
           const isActive = activeProfileKey === profile.key;
@@ -72,6 +76,9 @@ export function ProfileBuildsBrowser({
               onClick={() => {
                 setActiveProfileKey(profile.key);
                 setSelectedBuildId(buildsByProfile[profile.key]?.[0]?.id ?? null);
+                requestAnimationFrame(() => {
+                  possibleBuildsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
               }}
               className={`wireframe-panel stagger-in p-5 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
               style={{ animationDelay: `${index * 100}ms` }}
@@ -90,7 +97,7 @@ export function ProfileBuildsBrowser({
         })}
       </div>
 
-      <section className="wireframe-panel mt-6 p-6">
+      <section ref={possibleBuildsRef} className="wireframe-panel mt-6 p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
