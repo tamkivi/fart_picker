@@ -35,7 +35,12 @@ export default async function RootLayout({
       <body
         className={`${publicSans.variable} ${fraunces.variable} ${jetBrainsMono.variable} antialiased`}
       >
-        {children}
+        <div className="flex min-h-screen flex-col">
+          <div className="flex-1">{children}</div>
+          <footer className="px-6 pb-[1.5em] pt-[1em] text-center text-xs text-[color:var(--muted)]">
+            Made with love by Oaxtone
+          </footer>
+        </div>
       </body>
     </html>
   );
