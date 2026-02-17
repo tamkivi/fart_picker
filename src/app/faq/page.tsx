@@ -15,14 +15,6 @@ export default async function FaqPage() {
             a: "Vali avalehel üks AI-profiil. Iga profiili all on andmebaasist mitu eelseadistatud ehitusvarianti, mis on häälestatud konkreetse töökoormuse jaoks.",
           },
           {
-            q: "Kust riistvara andmed tulevad?",
-            a: "Rakendus lisab kohaliku kataloogi andmed avalike tootjaspetsifikatsioonide põhjal ja teenindab neid kirjeid SQLite kaudu. Kohandatud kirjeid saad lisada andmebaasi otse.",
-          },
-          {
-            q: "Kuidas admin-konto määratakse?",
-            a: "Admin-konto registreerimiseks on vaja ADMIN_SETUP_CODE väärtust. Tavalised registreerimised saavad USER rolli.",
-          },
-          {
             q: "Miks mõned ehitused maksavad oodatust rohkem?",
             a: "Ehituste hinnad on hinnangulised kogusummad, mis põhinevad valitud komponentidel ja profiili eesmärgil. Need ei ole reaalajas poe hinnapakkumised.",
           },
@@ -39,14 +31,6 @@ export default async function FaqPage() {
           {
             q: "How do I use the build profiles?",
             a: "Pick one of the AI profiles on the home page. Each profile has multiple preloaded build options from the database, tuned for that workload style.",
-          },
-          {
-            q: "Where does the hardware data come from?",
-            a: "The app seeds local catalog data using public vendor spec references and then serves those records from SQLite. You can edit the DB directly for custom entries.",
-          },
-          {
-            q: "How is the admin account determined?",
-            a: "Admin signup requires ADMIN_SETUP_CODE. Standard signups become USER accounts.",
           },
           {
             q: "Why do some builds cost more than expected?",
@@ -85,12 +69,20 @@ export default async function FaqPage() {
           <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">FAQ</h1>
           <p className="mt-4 max-w-4xl text-lg text-[color:var(--muted)]">
             {lang === "et"
-              ? "Vastused levinud küsimustele profiiliehituste, kontokäitumise ja andmebaasipõhiste soovituste kohta."
-              : "Answers to common questions about profile builds, account behavior, and database-backed recommendations."}
+              ? "Vastused levinud küsimustele profiiliehituste, hinnastuse ja kohaliku AI-arenduse kohta."
+              : "Answers to common questions about build profiles, pricing, and local AI workflows."}
           </p>
         </header>
 
         <div className="space-y-4">
+          <section className="wireframe-panel border-2 border-[color:var(--accent)] p-6">
+            <h2 className="font-display text-2xl font-semibold">Why AI builds?</h2>
+            <p className="mt-3 text-sm text-[color:var(--muted)]">
+              {lang === "et"
+                ? "Kohalikuks AI-ks ehitatud arvuti annab sulle suurema privaatsuse, sest andmed ei lahku sinu masinast, ning väiksema viiteaja igapäevaseks arenduseks. Spetsiaalselt valitud VRAM, mälu, salvestus ja toite-/jahutusvaru aitavad hoida mudelid stabiilselt töös ka pikemate sessioonide ajal ning jätavad ruumi tulevasteks uuendusteks."
+                : "A PC built for local AI gives you better privacy because your data stays on your machine, and lower latency for day-to-day development. Matching VRAM, memory, storage, PSU headroom, and cooling to model workloads keeps inference stable during long sessions and leaves room for future upgrades."}
+            </p>
+          </section>
           {faqs.map((item) => (
             <section key={item.q} className="wireframe-panel p-6">
               <h2 className="font-display text-2xl font-semibold">{item.q}</h2>
