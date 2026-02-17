@@ -95,6 +95,18 @@ export type CompactAiSystemRecord = {
   source_refs: string;
 };
 
+export type AiSoftwareRecord = {
+  id: number;
+  name: string;
+  vendor: string;
+  install_method: string;
+  best_for: string;
+  platform_support: string;
+  license_type: string;
+  price_model: string;
+  source_refs: string;
+};
+
 export type StorageDriveRecord = {
   id: number;
   name: string;
@@ -842,6 +854,45 @@ function ensureStorageDrive(
   );
 }
 
+function ensureAiSoftware(
+  db: DatabaseSync,
+  software: {
+    name: string;
+    vendor: string;
+    installMethod: string;
+    bestFor: string;
+    platformSupport: string;
+    licenseType: string;
+    priceModel: string;
+    sourceRefs: string;
+  },
+): void {
+  db.prepare(
+    `
+    INSERT INTO ai_software_catalog
+      (name, vendor, install_method, best_for, platform_support, license_type, price_model, source_refs)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      vendor = excluded.vendor,
+      install_method = excluded.install_method,
+      best_for = excluded.best_for,
+      platform_support = excluded.platform_support,
+      license_type = excluded.license_type,
+      price_model = excluded.price_model,
+      source_refs = excluded.source_refs
+  `,
+  ).run(
+    software.name,
+    software.vendor,
+    software.installMethod,
+    software.bestFor,
+    software.platformSupport,
+    software.licenseType,
+    software.priceModel,
+    software.sourceRefs,
+  );
+}
+
 function ensureCpuCooler(
   db: DatabaseSync,
   cooler: {
@@ -1083,6 +1134,51 @@ function seedCatalog(db: DatabaseSync): void {
       tdpWatts: 260,
       aiScore: 84,
       priceEur: 2499,
+    },
+    {
+      name: "NVIDIA RTX 5090",
+      brand: "NVIDIA",
+      vramGb: 32,
+      architecture: "Blackwell",
+      tdpWatts: 575,
+      aiScore: 100,
+      priceEur: 2599,
+    },
+    {
+      name: "NVIDIA RTX 5080",
+      brand: "NVIDIA",
+      vramGb: 16,
+      architecture: "Blackwell",
+      tdpWatts: 360,
+      aiScore: 95,
+      priceEur: 1299,
+    },
+    {
+      name: "NVIDIA RTX 5070 Ti",
+      brand: "NVIDIA",
+      vramGb: 16,
+      architecture: "Blackwell",
+      tdpWatts: 300,
+      aiScore: 89,
+      priceEur: 899,
+    },
+    {
+      name: "AMD Radeon RX 9070 XT",
+      brand: "AMD",
+      vramGb: 16,
+      architecture: "RDNA 4",
+      tdpWatts: 304,
+      aiScore: 85,
+      priceEur: 789,
+    },
+    {
+      name: "AMD Radeon RX 9070",
+      brand: "AMD",
+      vramGb: 16,
+      architecture: "RDNA 4",
+      tdpWatts: 220,
+      aiScore: 80,
+      priceEur: 659,
     },
   ];
 
@@ -1351,6 +1447,54 @@ function seedCatalog(db: DatabaseSync): void {
       aiScore: 90,
       priceEur: 519,
     },
+    {
+      name: "AMD Ryzen 9 9950X3D",
+      brand: "AMD",
+      cores: 16,
+      threads: 32,
+      baseClockGhz: 4.3,
+      boostClockGhz: 5.7,
+      socket: "AM5",
+      tdpWatts: 170,
+      aiScore: 98,
+      priceEur: 829,
+    },
+    {
+      name: "AMD Ryzen 7 9800X3D",
+      brand: "AMD",
+      cores: 8,
+      threads: 16,
+      baseClockGhz: 4.7,
+      boostClockGhz: 5.2,
+      socket: "AM5",
+      tdpWatts: 120,
+      aiScore: 88,
+      priceEur: 569,
+    },
+    {
+      name: "Intel Core Ultra 5 245K",
+      brand: "Intel",
+      cores: 14,
+      threads: 14,
+      baseClockGhz: 4.2,
+      boostClockGhz: 5.2,
+      socket: "LGA1851",
+      tdpWatts: 125,
+      aiScore: 80,
+      priceEur: 359,
+    },
+    {
+      name: "AMD Ryzen 7 8700G",
+      brand: "AMD",
+      cores: 8,
+      threads: 16,
+      baseClockGhz: 4.2,
+      boostClockGhz: 5.1,
+      socket: "AM5",
+      tdpWatts: 65,
+      aiScore: 76,
+      priceEur: 329,
+    },
   ];
 
   const ramKitSeed = [
@@ -1450,6 +1594,54 @@ function seedCatalog(db: DatabaseSync): void {
       priceEur: 529,
       sourceRefs: "https://www.kingston.com/en/memory/gaming/kingston-fury-renegade-ddr5-memory",
     },
+    {
+      name: "Corsair Dominator Titanium DDR5 96GB 6600 CL32",
+      brand: "Corsair",
+      capacityGb: 96,
+      modules: "2x48GB",
+      ddrGen: "DDR5",
+      speedMtS: 6600,
+      casLatency: "CL32",
+      profileSupport: "XMP",
+      priceEur: 479,
+      sourceRefs: "https://www.corsair.com/us/en/c/memory",
+    },
+    {
+      name: "G.Skill Flare X5 64GB 6000 CL30",
+      brand: "G.Skill",
+      capacityGb: 64,
+      modules: "2x32GB",
+      ddrGen: "DDR5",
+      speedMtS: 6000,
+      casLatency: "CL30",
+      profileSupport: "EXPO",
+      priceEur: 229,
+      sourceRefs: "https://www.gskill.com/products/1/165/Desktop-Memory",
+    },
+    {
+      name: "Kingston Fury Beast DDR5 64GB 6400 CL32",
+      brand: "Kingston",
+      capacityGb: 64,
+      modules: "2x32GB",
+      ddrGen: "DDR5",
+      speedMtS: 6400,
+      casLatency: "CL32",
+      profileSupport: "XMP",
+      priceEur: 249,
+      sourceRefs: "https://www.kingston.com/en/memory/gaming/kingston-fury-beast-ddr5-memory",
+    },
+    {
+      name: "Crucial Pro DDR5 64GB 6000 CL36",
+      brand: "Crucial",
+      capacityGb: 64,
+      modules: "2x32GB",
+      ddrGen: "DDR5",
+      speedMtS: 6000,
+      casLatency: "CL36",
+      profileSupport: "XMP + EXPO",
+      priceEur: 209,
+      sourceRefs: "https://www.crucial.com/memory/ddr5",
+    },
   ];
 
   const powerSupplySeed = [
@@ -1530,6 +1722,39 @@ function seedCatalog(db: DatabaseSync): void {
       priceEur: 409,
       sourceRefs: "https://seasonic.com/prime-tx",
     },
+    {
+      name: "Corsair RM850e",
+      brand: "Corsair",
+      wattage: 850,
+      efficiencyRating: "80+ Gold",
+      atxStandard: "ATX 3.0",
+      modularity: "Fully Modular",
+      pcie5Support: 1,
+      priceEur: 139,
+      sourceRefs: "https://www.corsair.com/us/en/p/psu/cp-9020263-na/rm850e-fully-modular-low-noise-atx-power-supply-cp-9020263-na",
+    },
+    {
+      name: "be quiet! Dark Power 13 1000W",
+      brand: "be quiet!",
+      wattage: 1000,
+      efficiencyRating: "80+ Titanium",
+      atxStandard: "ATX 3.0",
+      modularity: "Fully Modular",
+      pcie5Support: 1,
+      priceEur: 319,
+      sourceRefs: "https://www.bequiet.com/en/powersupply/4070",
+    },
+    {
+      name: "Seasonic VERTEX GX-1000",
+      brand: "Seasonic",
+      wattage: 1000,
+      efficiencyRating: "80+ Gold",
+      atxStandard: "ATX 3.0",
+      modularity: "Fully Modular",
+      pcie5Support: 1,
+      priceEur: 239,
+      sourceRefs: "https://seasonic.com/vertex-gx",
+    },
   ];
 
   const caseSeed = [
@@ -1592,6 +1817,46 @@ function seedCatalog(db: DatabaseSync): void {
       includedFans: "3x 140mm",
       priceEur: 169,
       sourceRefs: "https://www.fractal-design.com/products/cases/meshify/meshify-2/",
+    },
+    {
+      name: "Lian Li O11 Dynamic EVO",
+      brand: "Lian Li",
+      formFactor: "ATX Mid Tower",
+      maxGpuMm: 426,
+      radiatorSupport: "Up to 360mm top/side/bottom",
+      includedFans: "0",
+      priceEur: 179,
+      sourceRefs: "https://lian-li.com/product/o11-dynamic-evo/",
+    },
+    {
+      name: "Fractal Design Torrent",
+      brand: "Fractal",
+      formFactor: "ATX Mid Tower",
+      maxGpuMm: 423,
+      radiatorSupport: "Up to 420mm front",
+      includedFans: "2x 180mm + 3x 140mm",
+      priceEur: 229,
+      sourceRefs: "https://www.fractal-design.com/products/cases/torrent/torrent/",
+    },
+    {
+      name: "be quiet! Shadow Base 800 FX",
+      brand: "be quiet!",
+      formFactor: "ATX Mid Tower",
+      maxGpuMm: 430,
+      radiatorSupport: "Up to 420mm front/top",
+      includedFans: "4x 140mm",
+      priceEur: 209,
+      sourceRefs: "https://www.bequiet.com/en/case/shadow-base-800-fx/4486",
+    },
+    {
+      name: "NZXT H9 Flow",
+      brand: "NZXT",
+      formFactor: "ATX Mid Tower",
+      maxGpuMm: 435,
+      radiatorSupport: "Up to 360mm top/side",
+      includedFans: "4x 120mm",
+      priceEur: 189,
+      sourceRefs: "https://nzxt.com/product/h9-flow",
     },
   ];
 
@@ -1684,6 +1949,50 @@ function seedCatalog(db: DatabaseSync): void {
       priceEur: 389,
       sourceRefs: "https://www.gigabyte.com/Motherboard",
     },
+    {
+      name: "ASUS ROG STRIX B650E-E GAMING WIFI",
+      brand: "ASUS",
+      socket: "AM5",
+      chipset: "B650E",
+      memorySupport: "DDR5",
+      maxMemoryGb: 192,
+      pcieGen5Support: 1,
+      priceEur: 339,
+      sourceRefs: "https://www.asus.com/motherboards-components/motherboards/rog-strix/rog-strix-b650e-e-gaming-wifi/",
+    },
+    {
+      name: "ASRock B650E PG Riptide WiFi",
+      brand: "ASRock",
+      socket: "AM5",
+      chipset: "B650E",
+      memorySupport: "DDR5",
+      maxMemoryGb: 192,
+      pcieGen5Support: 1,
+      priceEur: 249,
+      sourceRefs: "https://www.asrock.com/mb/AMD/B650E%20PG%20Riptide%20WiFi/index.asp",
+    },
+    {
+      name: "MSI MPG X870E CARBON WIFI",
+      brand: "MSI",
+      socket: "AM5",
+      chipset: "X870E",
+      memorySupport: "DDR5",
+      maxMemoryGb: 256,
+      pcieGen5Support: 1,
+      priceEur: 529,
+      sourceRefs: "https://www.msi.com/Motherboard/MPG-X870E-CARBON-WIFI",
+    },
+    {
+      name: "ASUS PRIME Z790-A WIFI",
+      brand: "ASUS",
+      socket: "LGA1700",
+      chipset: "Z790",
+      memorySupport: "DDR5",
+      maxMemoryGb: 192,
+      pcieGen5Support: 1,
+      priceEur: 299,
+      sourceRefs: "https://www.asus.com/motherboards-components/motherboards/prime/prime-z790-a-wifi/",
+    },
   ];
 
   const compactSystemSeed = [
@@ -1722,11 +2031,139 @@ function seedCatalog(db: DatabaseSync): void {
       memoryGb: 24,
       storageGb: 512,
       gpuClass: "Integrated Apple GPU",
-      installedSoftware: "Homebrew, Python 3.11, Ollama, VS Code, Postman",
+      installedSoftware: "Homebrew, Python 3.11, Ollama, LM Studio, VS Code, Postman, Open WebUI",
       bestFor: "Budget macOS AI dev environment and small model testing",
       priceEur: 799,
       inStock: 1,
       sourceRefs: "https://www.apple.com/shop/buy-mac/mac-mini | https://www.postman.com/downloads/",
+    },
+    {
+      name: "Mac Studio M2 Max Local AI",
+      vendor: "Apple",
+      chip: "Apple M2 Max",
+      memoryGb: 64,
+      storageGb: 1000,
+      gpuClass: "Integrated Apple GPU (M2 Max)",
+      installedSoftware:
+        "Homebrew, Python 3.12, Ollama, LM Studio, llama.cpp, Open WebUI, VS Code, Docker Desktop",
+      bestFor: "Higher-throughput local inference on macOS and multi-tool development",
+      priceEur: 2599,
+      inStock: 1,
+      sourceRefs:
+        "https://www.apple.com/mac-studio/ | https://ollama.com/ | https://github.com/ggml-org/llama.cpp | https://openwebui.com/",
+    },
+    {
+      name: "Mac Studio M2 Ultra Team Node",
+      vendor: "Apple",
+      chip: "Apple M2 Ultra",
+      memoryGb: 128,
+      storageGb: 2000,
+      gpuClass: "Integrated Apple GPU (M2 Ultra)",
+      installedSoftware:
+        "Homebrew, Python 3.12, Ollama, LM Studio, MLX, llama.cpp, Open WebUI, Docker Desktop, Tailscale",
+      bestFor: "Shared local inference endpoint and heavier concurrent model serving",
+      priceEur: 4899,
+      inStock: 1,
+      sourceRefs:
+        "https://www.apple.com/mac-studio/ | https://github.com/ml-explore/mlx | https://www.docker.com/products/docker-desktop/",
+    },
+    {
+      name: "Mac mini M4 Pro Serve + UI",
+      vendor: "Apple",
+      chip: "Apple M4 Pro",
+      memoryGb: 64,
+      storageGb: 2000,
+      gpuClass: "Integrated Apple GPU (Pro tier)",
+      installedSoftware:
+        "Homebrew, Python 3.12, Ollama, LM Studio, Open WebUI, llama.cpp, uv, VS Code, Docker Desktop",
+      bestFor: "All-in-one local AI appliance for inference plus lightweight serving",
+      priceEur: 2499,
+      inStock: 1,
+      sourceRefs:
+        "https://www.apple.com/mac-mini/ | https://docs.openwebui.com/ | https://github.com/ggml-org/llama.cpp",
+    },
+  ];
+
+  const softwareSeed = [
+    {
+      name: "Ollama",
+      vendor: "Ollama",
+      installMethod: "Standalone app + CLI",
+      bestFor: "Quick local model pulls and serving APIs",
+      platformSupport: "macOS, Linux, Windows",
+      licenseType: "Open source",
+      priceModel: "Free",
+      sourceRefs: "https://ollama.com/",
+    },
+    {
+      name: "LM Studio",
+      vendor: "Element Labs",
+      installMethod: "Desktop app",
+      bestFor: "GUI-based local inference and prompt testing",
+      platformSupport: "macOS, Windows, Linux",
+      licenseType: "Proprietary",
+      priceModel: "Free tier",
+      sourceRefs: "https://lmstudio.ai/docs",
+    },
+    {
+      name: "llama.cpp",
+      vendor: "ggml-org",
+      installMethod: "Build from source / package manager",
+      bestFor: "Lightweight CPU/GPU inference and integrations",
+      platformSupport: "macOS, Linux, Windows",
+      licenseType: "MIT",
+      priceModel: "Free",
+      sourceRefs: "https://github.com/ggml-org/llama.cpp",
+    },
+    {
+      name: "Open WebUI",
+      vendor: "Open WebUI Team",
+      installMethod: "Docker / Python package",
+      bestFor: "Self-hosted local chat UI over Ollama and compatible APIs",
+      platformSupport: "macOS, Linux, Windows",
+      licenseType: "Open source",
+      priceModel: "Free",
+      sourceRefs: "https://docs.openwebui.com/",
+    },
+    {
+      name: "vLLM",
+      vendor: "vLLM Project",
+      installMethod: "Python package",
+      bestFor: "High-throughput GPU model serving",
+      platformSupport: "Linux, Windows (WSL), macOS (limited)",
+      licenseType: "Apache-2.0",
+      priceModel: "Free",
+      sourceRefs: "https://docs.vllm.ai/",
+    },
+    {
+      name: "MLX",
+      vendor: "Apple",
+      installMethod: "Python package",
+      bestFor: "Model inference and fine-tuning optimized for Apple Silicon",
+      platformSupport: "macOS (Apple Silicon)",
+      licenseType: "MIT",
+      priceModel: "Free",
+      sourceRefs: "https://github.com/ml-explore/mlx",
+    },
+    {
+      name: "Docker Desktop",
+      vendor: "Docker",
+      installMethod: "Desktop app",
+      bestFor: "Containerized model serving and reproducible dev stacks",
+      platformSupport: "macOS, Linux, Windows",
+      licenseType: "Proprietary",
+      priceModel: "Free tier + paid plans",
+      sourceRefs: "https://www.docker.com/products/docker-desktop/",
+    },
+    {
+      name: "ComfyUI",
+      vendor: "ComfyUI Community",
+      installMethod: "Python package / standalone build",
+      bestFor: "Node-based local generative AI workflows",
+      platformSupport: "macOS, Linux, Windows",
+      licenseType: "Open source",
+      priceModel: "Free",
+      sourceRefs: "https://github.com/comfyanonymous/ComfyUI",
     },
   ];
 
@@ -1874,6 +2311,10 @@ function seedCatalog(db: DatabaseSync): void {
     ensureCompactAiSystem(db, compactSystem);
   });
 
+  softwareSeed.forEach((software) => {
+    ensureAiSoftware(db, software);
+  });
+
   storageDriveSeed.forEach((drive) => {
     ensureStorageDrive(db, drive);
   });
@@ -1920,8 +2361,18 @@ function seedProfileBuilds(db: DatabaseSync): void {
       .id,
     gpu7800xt: (db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 7800 XT' LIMIT 1").get() as { id: number })
       .id,
+    gpu5090: (db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 5090' LIMIT 1").get() as { id: number }).id,
+    gpu5080: (db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 5080' LIMIT 1").get() as { id: number }).id,
+    gpu5070ti: (db.prepare("SELECT id FROM gpus WHERE name = 'NVIDIA RTX 5070 Ti' LIMIT 1").get() as { id: number }).id,
+    gpu9070xt: (db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 9070 XT' LIMIT 1").get() as { id: number })
+      .id,
+    gpu9070: (db.prepare("SELECT id FROM gpus WHERE name = 'AMD Radeon RX 9070' LIMIT 1").get() as { id: number }).id,
     cpui5: (db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core i5-14600K' LIMIT 1").get() as { id: number }).id,
     cpu7800x3d: (db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 7 7800X3D' LIMIT 1").get() as { id: number })
+      .id,
+    cpu9950x3d: (db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 9 9950X3D' LIMIT 1").get() as { id: number }).id,
+    cpu9800x3d: (db.prepare("SELECT id FROM cpus WHERE name = 'AMD Ryzen 7 9800X3D' LIMIT 1").get() as { id: number }).id,
+    cpuultra5: (db.prepare("SELECT id FROM cpus WHERE name = 'Intel Core Ultra 5 245K' LIMIT 1").get() as { id: number })
       .id,
   };
 
@@ -2313,6 +2764,71 @@ function seedProfileBuilds(db: DatabaseSync): void {
       cpuId: ids.cpu7900,
       gpuId: ids.gpu4070s,
     },
+    {
+      profileKey: "local-llm-inference",
+      profileLabel: "Local LLM Inference",
+      buildName: "Blackwell 32GB Inference Flagship",
+      targetModel: "70B q4 sustained",
+      ramGb: 128,
+      storageGb: 4000,
+      estimatedPriceEur: 4399,
+      notes: "Top-end CUDA workstation for heavy local context windows and multi-session concurrency.",
+      sourceRefs: "GPU data: nvidia.com GeForce RTX 5090 specs; CPU data: amd.com Ryzen 9 9950X3D specs.",
+      cpuId: ids.cpu9950x3d,
+      gpuId: ids.gpu5090,
+    },
+    {
+      profileKey: "local-llm-inference",
+      profileLabel: "Local LLM Inference",
+      buildName: "Blackwell 16GB Daily Developer",
+      targetModel: "34B q4",
+      ramGb: 96,
+      storageGb: 2000,
+      estimatedPriceEur: 2699,
+      notes: "Modern CUDA stack at lower power than flagship while keeping fast local inference.",
+      sourceRefs: "GPU data: nvidia.com GeForce RTX 5080 specs; CPU data: intel.com Core Ultra 7/5 platform specs.",
+      cpuId: ids.cpuultra5,
+      gpuId: ids.gpu5080,
+    },
+    {
+      profileKey: "llm-finetune-starter",
+      profileLabel: "LLM Fine-Tune Starter",
+      buildName: "RDNA4 LoRA Value Node",
+      targetModel: "7B-13B LoRA",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1999,
+      notes: "Price-efficient ROCm-oriented setup for adapters, embeddings, and mixed inference.",
+      sourceRefs: "GPU data: amd.com Radeon RX 9070 XT specs; CPU data: amd.com Ryzen 7 9800X3D specs.",
+      cpuId: ids.cpu9800x3d,
+      gpuId: ids.gpu9070xt,
+    },
+    {
+      profileKey: "hybrid-ai-gaming",
+      profileLabel: "Hybrid AI + Gaming",
+      buildName: "Balanced RDNA4 Hybrid",
+      targetModel: "20B-34B q4 + strong 1440p gaming",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 1949,
+      notes: "Balanced gaming and local AI tower with newer RDNA4 efficiency characteristics.",
+      sourceRefs: "GPU data: amd.com Radeon RX 9070 specs; CPU data: amd.com Ryzen 7 9800X3D specs.",
+      cpuId: ids.cpu9800x3d,
+      gpuId: ids.gpu9070,
+    },
+    {
+      profileKey: "hybrid-ai-gaming",
+      profileLabel: "Hybrid AI + Gaming",
+      buildName: "Blackwell 5070 Ti Creator Hybrid",
+      targetModel: "20B-34B q4 + creator workloads",
+      ramGb: 64,
+      storageGb: 2000,
+      estimatedPriceEur: 2249,
+      notes: "High-refresh creator system with modern CUDA acceleration and balanced thermals.",
+      sourceRefs: "GPU data: nvidia.com GeForce RTX 5070 Ti specs; CPU data: intel.com Core Ultra 5 245K specs.",
+      cpuId: ids.cpuultra5,
+      gpuId: ids.gpu5070ti,
+    },
   ];
 
   const cpuSpecStatement = db.prepare("SELECT socket, tdp_watts, price_eur FROM cpus WHERE id = ? LIMIT 1");
@@ -2600,6 +3116,18 @@ function initDatabase(): DatabaseSync {
       source_refs TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS ai_software_catalog (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      vendor TEXT NOT NULL,
+      install_method TEXT NOT NULL,
+      best_for TEXT NOT NULL,
+      platform_support TEXT NOT NULL,
+      license_type TEXT NOT NULL,
+      price_model TEXT NOT NULL,
+      source_refs TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS storage_drives (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE,
@@ -2800,6 +3328,15 @@ export function listCompactAiSystems(): CompactAiSystemRecord[] {
       "SELECT id, name, vendor, chip, memory_gb, storage_gb, gpu_class, installed_software, best_for, price_eur, in_stock, source_refs FROM compact_ai_systems ORDER BY price_eur DESC",
     )
     .all() as CompactAiSystemRecord[];
+}
+
+export function listAiSoftwareCatalog(): AiSoftwareRecord[] {
+  const db = getDb();
+  return db
+    .prepare(
+      "SELECT id, name, vendor, install_method, best_for, platform_support, license_type, price_model, source_refs FROM ai_software_catalog ORDER BY name ASC",
+    )
+    .all() as AiSoftwareRecord[];
 }
 
 export function listStorageDrives(): StorageDriveRecord[] {
