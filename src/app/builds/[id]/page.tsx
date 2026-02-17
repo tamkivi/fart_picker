@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
 import { LanguageSwitch } from "@/components/language-switch";
+import { Masthead } from "@/components/masthead";
 import { PurchaseBuildButton } from "@/components/purchase-build-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getBuildDetailView } from "@/lib/server/catalog-service";
@@ -28,6 +29,7 @@ export default async function BuildDetailPage({
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
       <section className="mx-auto max-w-6xl">
+        <Masthead />
         <header className="mb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthPanel } from "@/components/auth-panel";
 import { LanguageSwitch } from "@/components/language-switch";
+import { Masthead } from "@/components/masthead";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getRequestLanguage } from "@/lib/server/lang";
 
@@ -52,6 +53,7 @@ export default async function AboutPage() {
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
       <section className="mx-auto max-w-6xl">
+        <Masthead />
         <header className="mb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">

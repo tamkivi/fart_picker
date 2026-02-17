@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
+import { Masthead } from "@/components/masthead";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-session";
 import { getAdminOrdersView, getSessionUser } from "@/lib/server/order-service";
@@ -20,6 +21,7 @@ export default async function AdminOrdersPage() {
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
       <section className="mx-auto max-w-6xl">
+        <Masthead />
         <header className="mb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-2">
