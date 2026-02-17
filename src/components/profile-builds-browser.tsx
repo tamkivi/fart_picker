@@ -100,7 +100,7 @@ export function ProfileBuildsBrowser({
         })}
       </div>
 
-      <section ref={possibleBuildsRef} className="wireframe-panel mt-10 p-6">
+      <section ref={possibleBuildsRef} className="wireframe-panel mt-14 p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
