@@ -43,11 +43,11 @@ export default async function AboutPage() {
             "Each build stores target model range, estimated cost, and notes.",
             "Build cards expose CPU/GPU pairings and expected local usage tier.",
           ],
-    scopeTitle: lang === "et" ? "Projekti ulatus" : "Project Scope",
-    scopeDescription:
+    processTitle: lang === "et" ? "Kuidas protsess töötab" : "How The Process Works",
+    processDescription:
       lang === "et"
-        ? "Praegune toode on toimiv prototüüp: konto autentimine, rollipõhine admin-loogika, andmebaasipõhised komponentide kataloogid ja klikitav profiilipõhine ehituste sirvimine. Järgmised verstapostid on benchmark-ide automaatne lisamine, rikkalikumad hinnavoogud ja sügavamad ühilduvuspiirangud."
-        : "The current product is a functional prototype: account auth, role-aware admin logic, database-backed part catalogs, and clickable profile build browsing. Next milestones include benchmark ingestion, richer pricing feeds, and deeper compatibility constraints.",
+        ? "Otsin Eesti turult sinu valitud ehituse jaoks kõige soodsamad komponendid, tellin need ära, komplekteerin arvuti ning paigaldan kogu vajaliku tarkvara lokaalsete mudelite käitamiseks."
+        : "I find the cheapest available parts in Estonia for your selected build, order them, assemble the PC, and install all required software for running models locally.",
   };
 
   return (
@@ -95,8 +95,8 @@ export default async function AboutPage() {
         </div>
 
         <section className="wireframe-panel mt-6 p-6">
-          <h2 className="font-display text-3xl font-semibold">{copy.scopeTitle}</h2>
-          <p className="mt-3 text-sm text-[color:var(--muted)]">{copy.scopeDescription}</p>
+          <h2 className="font-display text-3xl font-semibold">{copy.processTitle}</h2>
+          <p className="mt-3 text-sm text-[color:var(--muted)]">{copy.processDescription}</p>
         </section>
       </section>
     </main>
