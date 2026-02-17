@@ -190,11 +190,24 @@ export type AccountSummary = {
 };
 
 export type OrderStatus = "PENDING" | "CHECKOUT_CREATED" | "PAID" | "CANCELED" | "FAILED";
+export type OrderItemType =
+  | "PROFILE_BUILD"
+  | "GPU"
+  | "CPU"
+  | "RAM_KIT"
+  | "POWER_SUPPLY"
+  | "CASE"
+  | "MOTHERBOARD"
+  | "COMPACT_AI_SYSTEM"
+  | "STORAGE_DRIVE"
+  | "CPU_COOLER";
 
 export type OrderRecord = {
   id: number;
   user_id: number;
   profile_build_id: number;
+  order_item_type?: OrderItemType;
+  order_item_id?: number;
   build_name: string;
   amount_eur_cents: number;
   currency: string;
@@ -223,6 +236,8 @@ export type AdminOrderListItem = {
   user_id: number;
   user_email: string;
   profile_build_id: number;
+  order_item_type?: OrderItemType;
+  order_item_id?: number;
   build_name: string;
   amount_eur_cents: number;
   currency: string;
@@ -318,6 +333,8 @@ async function ensurePgSchema(): Promise<void> {
           id SERIAL PRIMARY KEY,
           user_id INTEGER NOT NULL REFERENCES users(id),
           profile_build_id INTEGER NOT NULL,
+          order_item_type TEXT NOT NULL DEFAULT 'PROFILE_BUILD',
+          order_item_id INTEGER NOT NULL DEFAULT 0,
           build_name TEXT NOT NULL,
           amount_eur_cents INTEGER NOT NULL,
           currency TEXT NOT NULL DEFAULT 'eur',
@@ -330,6 +347,7 @@ async function ensurePgSchema(): Promise<void> {
 
         CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
         CREATE INDEX IF NOT EXISTS idx_orders_profile_build_id ON orders(profile_build_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_item_ref ON orders(order_item_type, order_item_id);
         CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
         CREATE TABLE IF NOT EXISTS stripe_webhook_events (
@@ -339,6 +357,12 @@ async function ensurePgSchema(): Promise<void> {
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
       `);
+      await pool.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_item_type TEXT NOT NULL DEFAULT 'PROFILE_BUILD'");
+      await pool.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_item_id INTEGER NOT NULL DEFAULT 0");
+      await pool.query(
+        "UPDATE orders SET order_item_type = COALESCE(order_item_type, 'PROFILE_BUILD'), order_item_id = CASE WHEN order_item_id = 0 THEN profile_build_id ELSE order_item_id END",
+      );
+      await pool.query("CREATE INDEX IF NOT EXISTS idx_orders_item_ref ON orders(order_item_type, order_item_id)");
     })();
   }
 
@@ -445,6 +469,18 @@ function ensureProfileBuildDetailColumns(db: DatabaseSync): void {
   if (!hasColumn(db, "profile_builds", "cooling_profile")) {
     db.exec("ALTER TABLE profile_builds ADD COLUMN cooling_profile TEXT DEFAULT 'Balanced air cooling';");
   }
+}
+
+function ensureOrderItemColumns(db: DatabaseSync): void {
+  if (!hasColumn(db, "orders", "order_item_type")) {
+    db.exec("ALTER TABLE orders ADD COLUMN order_item_type TEXT NOT NULL DEFAULT 'PROFILE_BUILD';");
+  }
+  if (!hasColumn(db, "orders", "order_item_id")) {
+    db.exec("ALTER TABLE orders ADD COLUMN order_item_id INTEGER NOT NULL DEFAULT 0;");
+  }
+  db.exec("UPDATE orders SET order_item_type = COALESCE(order_item_type, 'PROFILE_BUILD') WHERE order_item_type IS NULL;");
+  db.exec("UPDATE orders SET order_item_id = profile_build_id WHERE order_item_id = 0;");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_orders_item_ref ON orders(order_item_type, order_item_id);");
 }
 
 function ensureGpu(
@@ -3221,6 +3257,8 @@ function initDatabase(): DatabaseSync {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       profile_build_id INTEGER NOT NULL,
+      order_item_type TEXT NOT NULL DEFAULT 'PROFILE_BUILD',
+      order_item_id INTEGER NOT NULL DEFAULT 0,
       build_name TEXT NOT NULL,
       amount_eur_cents INTEGER NOT NULL,
       currency TEXT NOT NULL DEFAULT 'eur',
@@ -3247,6 +3285,7 @@ function initDatabase(): DatabaseSync {
 
   ensureEuroPriceColumns(db);
   ensureProfileBuildDetailColumns(db);
+  ensureOrderItemColumns(db);
   seedCatalog(db);
   seedProfileBuilds(db);
   return db;
@@ -3764,8 +3803,8 @@ export async function createPendingOrderForBuild(input: {
     }
 
     const inserted = await pool.query(
-      "INSERT INTO orders (user_id, profile_build_id, build_name, amount_eur_cents, currency, status) VALUES ($1, $2, $3, $4, 'eur', 'PENDING') RETURNING id",
-      [input.userId, input.buildId, build.build_name, amountEurCents],
+      "INSERT INTO orders (user_id, profile_build_id, order_item_type, order_item_id, build_name, amount_eur_cents, currency, status) VALUES ($1, $2, 'PROFILE_BUILD', $3, $4, $5, 'eur', 'PENDING') RETURNING id",
+      [input.userId, input.buildId, input.buildId, build.build_name, amountEurCents],
     );
     const orderId = Number(inserted.rows[0]?.id);
     if (!Number.isFinite(orderId)) {
@@ -3795,9 +3834,9 @@ export async function createPendingOrderForBuild(input: {
   }
   const inserted = db
     .prepare(
-      "INSERT INTO orders (user_id, profile_build_id, build_name, amount_eur_cents, currency, status) VALUES (?, ?, ?, ?, 'eur', 'PENDING')",
+      "INSERT INTO orders (user_id, profile_build_id, order_item_type, order_item_id, build_name, amount_eur_cents, currency, status) VALUES (?, ?, 'PROFILE_BUILD', ?, ?, ?, 'eur', 'PENDING')",
     )
-    .run(input.userId, build.id, build.build_name, amountEurCents) as { lastInsertRowid: number | bigint };
+    .run(input.userId, build.id, build.id, build.build_name, amountEurCents) as { lastInsertRowid: number | bigint };
 
   const orderId = Number(inserted.lastInsertRowid);
   return {
@@ -3805,6 +3844,117 @@ export async function createPendingOrderForBuild(input: {
     orderId,
     buildName: build.build_name,
     amountEurCents,
+  };
+}
+
+type CatalogOrderItemType = Exclude<OrderItemType, "PROFILE_BUILD">;
+type ResolvedOrderItem = {
+  fallbackBuildId: number;
+  itemType: CatalogOrderItemType;
+  itemId: number;
+  displayName: string;
+  amountEurCents: number;
+};
+
+function getFallbackBuildId(db: DatabaseSync): number {
+  const row = db.prepare("SELECT id FROM profile_builds ORDER BY id ASC LIMIT 1").get() as { id: number } | undefined;
+  return row?.id ?? 1;
+}
+
+function resolveCatalogOrderItem(itemType: CatalogOrderItemType, itemId: number): ResolvedOrderItem | null {
+  const db = getDb();
+  const refs: Record<
+    CatalogOrderItemType,
+    { tableName: string; category: string; nameColumn: string; priceColumn: string }
+  > = {
+    GPU: { tableName: "gpus", category: "gpu", nameColumn: "name", priceColumn: "price_eur" },
+    CPU: { tableName: "cpus", category: "cpu", nameColumn: "name", priceColumn: "price_eur" },
+    RAM_KIT: { tableName: "ram_kits", category: "ram_kit", nameColumn: "name", priceColumn: "price_eur" },
+    POWER_SUPPLY: { tableName: "power_supplies", category: "power_supply", nameColumn: "name", priceColumn: "price_eur" },
+    CASE: { tableName: "pc_cases", category: "case", nameColumn: "name", priceColumn: "price_eur" },
+    MOTHERBOARD: { tableName: "motherboards", category: "motherboard", nameColumn: "name", priceColumn: "price_eur" },
+    COMPACT_AI_SYSTEM: {
+      tableName: "compact_ai_systems",
+      category: "compact_ai_system",
+      nameColumn: "name",
+      priceColumn: "price_eur",
+    },
+    STORAGE_DRIVE: { tableName: "storage_drives", category: "storage_drive", nameColumn: "name", priceColumn: "price_eur" },
+    CPU_COOLER: { tableName: "cpu_coolers", category: "cpu_cooler", nameColumn: "name", priceColumn: "price_eur" },
+  };
+
+  const ref = refs[itemType];
+  const item = db
+    .prepare(`SELECT ${ref.nameColumn} AS name, ${ref.priceColumn} AS price_eur FROM ${ref.tableName} WHERE id = ? LIMIT 1`)
+    .get(itemId) as { name: string; price_eur: number } | undefined;
+
+  if (!item) {
+    return null;
+  }
+
+  const market = db
+    .prepare("SELECT final_price_eur FROM estonian_price_checks WHERE category = ? AND item_id = ? LIMIT 1")
+    .get(ref.category, itemId) as { final_price_eur: number } | undefined;
+  const preorderPriceEur = market ? Math.round(Number(market.final_price_eur)) : Math.round(Number(item.price_eur) * 1.15);
+  const amountEurCents = Math.max(100, preorderPriceEur * 100);
+
+  return {
+    fallbackBuildId: getFallbackBuildId(db),
+    itemType,
+    itemId,
+    displayName: item.name,
+    amountEurCents,
+  };
+}
+
+export async function createPendingOrderForCatalogItem(input: {
+  userId: number;
+  itemType: CatalogOrderItemType;
+  itemId: number;
+}): Promise<{ ok: true; orderId: number; buildName: string; amountEurCents: number } | { ok: false; message: string }> {
+  const resolved = resolveCatalogOrderItem(input.itemType, input.itemId);
+  if (!resolved) {
+    return { ok: false, message: "Item not found." };
+  }
+
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const inserted = await pool.query(
+      "INSERT INTO orders (user_id, profile_build_id, order_item_type, order_item_id, build_name, amount_eur_cents, currency, status) VALUES ($1, $2, $3, $4, $5, $6, 'eur', 'PENDING') RETURNING id",
+      [input.userId, resolved.fallbackBuildId, resolved.itemType, resolved.itemId, resolved.displayName, resolved.amountEurCents],
+    );
+    const orderId = Number(inserted.rows[0]?.id);
+    if (!Number.isFinite(orderId)) {
+      return { ok: false, message: "Could not create order." };
+    }
+    return {
+      ok: true,
+      orderId,
+      buildName: resolved.displayName,
+      amountEurCents: resolved.amountEurCents,
+    };
+  }
+
+  const db = getDb();
+  const inserted = db
+    .prepare(
+      "INSERT INTO orders (user_id, profile_build_id, order_item_type, order_item_id, build_name, amount_eur_cents, currency, status) VALUES (?, ?, ?, ?, ?, ?, 'eur', 'PENDING')",
+    )
+    .run(
+      input.userId,
+      resolved.fallbackBuildId,
+      resolved.itemType,
+      resolved.itemId,
+      resolved.displayName,
+      resolved.amountEurCents,
+    ) as { lastInsertRowid: number | bigint };
+
+  return {
+    ok: true,
+    orderId: Number(inserted.lastInsertRowid),
+    buildName: resolved.displayName,
+    amountEurCents: resolved.amountEurCents,
   };
 }
 
@@ -4068,6 +4218,7 @@ export async function getRecentOpenOrderForBuild(input: {
       FROM orders
       WHERE user_id = $1
         AND profile_build_id = $2
+        AND order_item_type = 'PROFILE_BUILD'
         AND status IN ('PENDING', 'CHECKOUT_CREATED')
         AND created_at > NOW() - INTERVAL '30 minutes'
       ORDER BY id DESC
@@ -4091,6 +4242,7 @@ export async function getRecentOpenOrderForBuild(input: {
       FROM orders
       WHERE user_id = ?
         AND profile_build_id = ?
+        AND order_item_type = 'PROFILE_BUILD'
         AND status IN ('PENDING', 'CHECKOUT_CREATED')
         AND datetime(created_at) > datetime('now', '-30 minutes')
       ORDER BY id DESC
@@ -4098,6 +4250,64 @@ export async function getRecentOpenOrderForBuild(input: {
     `,
     )
     .get(input.userId, input.buildId);
+
+  return (
+    (row as
+      | (Pick<OrderRecord, "id" | "build_name" | "amount_eur_cents" | "stripe_checkout_session_id"> & {
+          status: OrderStatus;
+        })
+      | undefined) ?? null
+  );
+}
+
+export async function getRecentOpenOrderForItem(input: {
+  userId: number;
+  itemType: CatalogOrderItemType;
+  itemId: number;
+}): Promise<(Pick<OrderRecord, "id" | "build_name" | "amount_eur_cents" | "stripe_checkout_session_id"> & {
+  status: OrderStatus;
+}) | null> {
+  if (shouldUsePersistentSql()) {
+    await ensurePgSchema();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `
+      SELECT id, build_name, amount_eur_cents, stripe_checkout_session_id, status
+      FROM orders
+      WHERE user_id = $1
+        AND order_item_type = $2
+        AND order_item_id = $3
+        AND status IN ('PENDING', 'CHECKOUT_CREATED')
+        AND created_at > NOW() - INTERVAL '30 minutes'
+      ORDER BY id DESC
+      LIMIT 1
+      `,
+      [input.userId, input.itemType, input.itemId],
+    );
+    const row = result.rows[0] as
+      | (Pick<OrderRecord, "id" | "build_name" | "amount_eur_cents" | "stripe_checkout_session_id"> & {
+          status: OrderStatus;
+        })
+      | undefined;
+    return row ?? null;
+  }
+
+  const db = getDb();
+  const row = db
+    .prepare(
+      `
+      SELECT id, build_name, amount_eur_cents, stripe_checkout_session_id, status
+      FROM orders
+      WHERE user_id = ?
+        AND order_item_type = ?
+        AND order_item_id = ?
+        AND status IN ('PENDING', 'CHECKOUT_CREATED')
+        AND datetime(created_at) > datetime('now', '-30 minutes')
+      ORDER BY id DESC
+      LIMIT 1
+    `,
+    )
+    .get(input.userId, input.itemType, input.itemId);
 
   return (
     (row as

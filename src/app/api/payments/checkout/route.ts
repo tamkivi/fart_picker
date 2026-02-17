@@ -2,7 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-session";
 import {
+  createPendingOrderForCatalogItem,
   createPendingOrderForBuild,
+  type OrderItemType,
+  getRecentOpenOrderForItem,
   getRecentOpenOrderForBuild,
   getUserFromSessionToken,
   markOrderCheckoutCreationFailed,
@@ -11,6 +14,28 @@ import {
 import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
+
+type CheckoutBody = {
+  itemType?: unknown;
+  itemId?: unknown;
+};
+
+function parseOrderItemType(value: unknown): OrderItemType | null {
+  const key = String(value ?? "").trim().toLowerCase();
+  const lookup: Record<string, OrderItemType> = {
+    profile_build: "PROFILE_BUILD",
+    gpu: "GPU",
+    cpu: "CPU",
+    ram_kit: "RAM_KIT",
+    power_supply: "POWER_SUPPLY",
+    case: "CASE",
+    motherboard: "MOTHERBOARD",
+    compact_ai_system: "COMPACT_AI_SYSTEM",
+    storage_drive: "STORAGE_DRIVE",
+    cpu_cooler: "CPU_COOLER",
+  };
+  return lookup[key] ?? null;
+}
 
 function resolveBaseUrl(): string | null {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -36,10 +61,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Please log in before purchasing." }, { status: 401 });
     }
 
-    const body = (await request.json().catch(() => null)) as { buildId?: unknown } | null;
-    const buildId = Number.parseInt(String(body?.buildId ?? ""), 10);
-    if (!Number.isFinite(buildId) || buildId <= 0) {
-      return NextResponse.json({ message: "Invalid build selection." }, { status: 400 });
+    const body = (await request.json().catch(() => null)) as CheckoutBody | null;
+    const itemType = parseOrderItemType(body?.itemType);
+    const itemId = Number.parseInt(String(body?.itemId ?? ""), 10);
+    if (!itemType || !Number.isFinite(itemId) || itemId <= 0) {
+      return NextResponse.json({ message: "Invalid item selection." }, { status: 400 });
     }
 
     const originHeader = request.headers.get("origin");
@@ -64,10 +90,17 @@ export async function POST(request: Request) {
     }
 
     const stripe = getStripe();
-    const reusableOrder = await getRecentOpenOrderForBuild({
-      userId: user.id,
-      buildId,
-    });
+    const reusableOrder =
+      itemType === "PROFILE_BUILD"
+        ? await getRecentOpenOrderForBuild({
+            userId: user.id,
+            buildId: itemId,
+          })
+        : await getRecentOpenOrderForItem({
+            userId: user.id,
+            itemType,
+            itemId,
+          });
 
     if (reusableOrder?.stripe_checkout_session_id) {
       const existingSession = await stripe.checkout.sessions.retrieve(reusableOrder.stripe_checkout_session_id);
@@ -76,10 +109,17 @@ export async function POST(request: Request) {
       }
     }
 
-    const order = await createPendingOrderForBuild({
-      userId: user.id,
-      buildId,
-    });
+    const order =
+      itemType === "PROFILE_BUILD"
+        ? await createPendingOrderForBuild({
+            userId: user.id,
+            buildId: itemId,
+          })
+        : await createPendingOrderForCatalogItem({
+            userId: user.id,
+            itemType,
+            itemId,
+          });
 
     if (!order.ok) {
       return NextResponse.json({ message: order.message }, { status: 404 });
@@ -101,7 +141,10 @@ export async function POST(request: Request) {
             unit_amount: order.amountEurCents,
             product_data: {
               name: order.buildName,
-              description: "AI build preorder (assembled and configured after purchase)",
+              description:
+                itemType === "PROFILE_BUILD"
+                  ? "AI build preorder (assembled and configured after purchase)"
+                  : "AI component/system preorder (sourced, assembled, and configured after purchase)",
             },
           },
         },
@@ -109,7 +152,8 @@ export async function POST(request: Request) {
       metadata: {
         order_id: String(order.orderId),
         user_id: String(user.id),
-        profile_build_id: String(buildId),
+        order_item_type: itemType,
+        order_item_id: String(itemId),
       },
       client_reference_id: String(order.orderId),
     }, {

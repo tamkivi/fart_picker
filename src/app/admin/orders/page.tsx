@@ -52,7 +52,7 @@ export default async function AdminOrdersPage() {
                   <tr className="border-b border-[color:var(--panel-border)]">
                     <th className="px-2 py-2">Order</th>
                     <th className="px-2 py-2">Customer</th>
-                    <th className="px-2 py-2">Build</th>
+                    <th className="px-2 py-2">Item</th>
                     <th className="px-2 py-2">Amount</th>
                     <th className="px-2 py-2">Status</th>
                     <th className="px-2 py-2">Created</th>

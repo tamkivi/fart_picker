@@ -3,6 +3,7 @@ import { AuthPanel } from "@/components/auth-panel";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Masthead } from "@/components/masthead";
 import { ProfileBuildsBrowser } from "@/components/profile-builds-browser";
+import { PurchaseBuildButton } from "@/components/purchase-build-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getRequestLanguage } from "@/lib/server/lang";
 import Link from "next/link";
@@ -144,6 +145,12 @@ export default async function Home() {
                   <span className="font-semibold">Preorder €{system.preorderPriceEur}</span>
                   <span className="label-pill">{system.inStock ? "In Stock" : "Out of Stock"}</span>
                 </div>
+                <PurchaseBuildButton
+                  itemType="compact_ai_system"
+                  itemId={system.id}
+                  priceEur={system.preorderPriceEur}
+                  buttonLabel={`Purchase for €${system.preorderPriceEur}`}
+                />
               </article>
             ))}
           </div>
@@ -164,6 +171,7 @@ export default async function Home() {
                       {gpu.brand} | {gpu.vramGb}GB VRAM | {gpu.architecture} | AI {gpu.aiScore}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{gpu.preorderPriceEur}</p>
+                    <PurchaseBuildButton itemType="gpu" itemId={gpu.id} priceEur={gpu.preorderPriceEur} />
                   </div>
                 ))}
               </div>
@@ -184,6 +192,7 @@ export default async function Home() {
                       {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.aiScore}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cpu.preorderPriceEur}</p>
+                    <PurchaseBuildButton itemType="cpu" itemId={cpu.id} priceEur={cpu.preorderPriceEur} />
                   </div>
                 ))}
               </div>
@@ -207,6 +216,7 @@ export default async function Home() {
                     </p>
                     <p className="font-mono text-xs text-[color:var(--muted)]">Profiles: {ramKit.profileSupport}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{ramKit.preorderPriceEur}</p>
+                    <PurchaseBuildButton itemType="ram_kit" itemId={ramKit.id} priceEur={ramKit.preorderPriceEur} />
                   </div>
                 ))}
               </div>
@@ -230,6 +240,7 @@ export default async function Home() {
                       Max memory: {motherboard.maxMemoryGb}GB | PCIe Gen5: {motherboard.pcieGen5Support ? "Yes" : "No"}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{motherboard.preorderPriceEur}</p>
+                    <PurchaseBuildButton itemType="motherboard" itemId={motherboard.id} priceEur={motherboard.preorderPriceEur} />
                   </div>
                 ))}
               </div>
@@ -255,6 +266,7 @@ export default async function Home() {
                       {psu.modularity} | 12V-2x6/PCIe5: {psu.pcie5Support ? "Supported" : "No"}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{psu.preorderPriceEur}</p>
+                    <PurchaseBuildButton itemType="power_supply" itemId={psu.id} priceEur={psu.preorderPriceEur} />
                   </div>
                 ))}
               </div>
@@ -278,6 +290,7 @@ export default async function Home() {
                       Radiator: {pcCase.radiatorSupport} | Fans: {pcCase.includedFans}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{pcCase.preorderPriceEur}</p>
+                    <PurchaseBuildButton itemType="case" itemId={pcCase.id} priceEur={pcCase.preorderPriceEur} />
                   </div>
                 ))}
               </div>
@@ -303,6 +316,7 @@ export default async function Home() {
                       Read: {drive.seqReadMbS} MB/s | TBW: {drive.enduranceTbw === 0 ? "n/a" : drive.enduranceTbw}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{drive.preorderPriceEur}</p>
+                    <PurchaseBuildButton itemType="storage_drive" itemId={drive.id} priceEur={drive.preorderPriceEur} />
                   </div>
                 ))}
               </div>
@@ -326,6 +340,7 @@ export default async function Home() {
                       Sockets: {cooler.socketSupport} | Noise: {cooler.noiseDb}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cooler.preorderPriceEur}</p>
+                    <PurchaseBuildButton itemType="cpu_cooler" itemId={cooler.id} priceEur={cooler.preorderPriceEur} />
                   </div>
                 ))}
               </div>

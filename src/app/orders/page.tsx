@@ -51,7 +51,7 @@ export default async function OrdersPage() {
 
         <section className="wireframe-panel p-6">
           {orders.length === 0 ? (
-            <p className="text-sm text-[color:var(--muted)]">No orders yet. Pick a build and complete checkout to create your first order.</p>
+            <p className="text-sm text-[color:var(--muted)]">No orders yet. Pick a build, component, or system and complete checkout to create your first order.</p>
           ) : (
             <div className="space-y-3">
               {orders.map((order) => (
@@ -60,7 +60,7 @@ export default async function OrdersPage() {
                     <p className="font-semibold">Order #{order.id}</p>
                     <span className="label-pill">{order.status}</span>
                   </div>
-                  <p className="mt-2 text-sm text-[color:var(--muted)]">Build: {order.buildName}</p>
+                  <p className="mt-2 text-sm text-[color:var(--muted)]">Item: {order.buildName}</p>
                   <p className="text-sm text-[color:var(--muted)]">Amount: €{order.amountEur}</p>
                   <p className="text-xs text-[color:var(--muted)]">Created: {order.createdAt}</p>
                   {order.checkoutSessionId ? (

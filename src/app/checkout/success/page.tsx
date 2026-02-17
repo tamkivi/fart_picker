@@ -50,7 +50,7 @@ export default async function CheckoutSuccessPage({
         {order ? (
           <div className="mt-5 rounded-lg border border-[color:var(--panel-border)] p-4">
             <p className="font-semibold">Order #{order.id}</p>
-            <p className="mt-2 text-sm text-[color:var(--muted)]">Build: {order.buildName}</p>
+            <p className="mt-2 text-sm text-[color:var(--muted)]">Item: {order.buildName}</p>
             <p className="text-sm text-[color:var(--muted)]">Amount: €{order.amountEur}</p>
             <p className="text-sm text-[color:var(--muted)]">Status: {order.status}</p>
           </div>

@@ -83,7 +83,7 @@ export default async function BuildDetailPage({
           <h2 className="font-display text-3xl font-semibold">Build Notes</h2>
           <p className="mt-3 text-sm text-[color:var(--muted)]">{build.notes}</p>
           <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Source references: {build.sourceRefs}</p>
-          <PurchaseBuildButton buildId={build.id} priceEur={build.estimatedPriceEur} />
+          <PurchaseBuildButton itemType="profile_build" itemId={build.id} priceEur={build.estimatedPriceEur} />
           <div className="mt-5">
             <Link href="/" className="label-pill inline-block">
               Back to build profiles

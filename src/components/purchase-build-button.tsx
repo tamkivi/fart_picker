@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 type Props = {
-  buildId: number;
+  itemType: "profile_build" | "gpu" | "cpu" | "ram_kit" | "power_supply" | "case" | "motherboard" | "compact_ai_system" | "storage_drive" | "cpu_cooler";
+  itemId: number;
   priceEur: number;
+  buttonLabel?: string;
 };
 
 async function parseApiMessage(response: Response): Promise<string | null> {
@@ -18,7 +20,7 @@ async function parseApiMessage(response: Response): Promise<string | null> {
   return text.trim() ? text.slice(0, 200) : null;
 }
 
-export function PurchaseBuildButton({ buildId, priceEur }: Props) {
+export function PurchaseBuildButton({ itemType, itemId, priceEur, buttonLabel }: Props) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -32,7 +34,7 @@ export function PurchaseBuildButton({ buildId, priceEur }: Props) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ buildId }),
+        body: JSON.stringify({ itemType, itemId }),
       });
 
       if (!response.ok) {
@@ -63,7 +65,7 @@ export function PurchaseBuildButton({ buildId, priceEur }: Props) {
         disabled={loading}
         className="rounded-md bg-[color:var(--accent)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {loading ? "Redirecting..." : `Purchase for €${priceEur}`}
+        {loading ? "Redirecting..." : buttonLabel ?? `Purchase for €${priceEur}`}
       </button>
       <p className="mt-2 text-xs text-[color:var(--muted)]">Secure checkout via Stripe.</p>
       {message ? <p className="mt-2 text-xs text-red-400">{message}</p> : null}
