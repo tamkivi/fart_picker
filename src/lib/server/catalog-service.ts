@@ -159,6 +159,29 @@ export type PublicProfileBuild = {
   gpuName: string;
 };
 
+export type CatalogItemType =
+  | "gpu"
+  | "cpu"
+  | "ram_kit"
+  | "power_supply"
+  | "case"
+  | "motherboard"
+  | "compact_ai_system"
+  | "storage_drive"
+  | "cpu_cooler";
+
+export type PublicCatalogItemDetail = {
+  itemType: CatalogItemType;
+  itemId: number;
+  name: string;
+  subtitle: string;
+  preorderPriceEur: number;
+  marketAvgEur: number | null;
+  basePriceEur: number;
+  checkoutItemType: CatalogItemType;
+  specs: Array<{ label: string; value: string }>;
+};
+
 export function getHomeCatalogView() {
   const priceChecks = listEstonianPriceChecks();
   const priceLookup = new Map<string, { final: number; avg: number }>();
@@ -354,5 +377,203 @@ export function getBuildDetailView(buildId: number): PublicProfileBuild | null {
     sourceRefs: build.source_refs,
     cpuName: build.cpu_name,
     gpuName: build.gpu_name,
+  };
+}
+
+export function getCatalogItemDetailView(itemType: CatalogItemType, itemId: number): PublicCatalogItemDetail | null {
+  const catalog = getHomeCatalogView();
+
+  if (itemType === "gpu") {
+    const item = catalog.gpus.find((entry) => entry.id === itemId);
+    if (!item) return null;
+    return {
+      itemType,
+      itemId,
+      name: item.name,
+      subtitle: `${item.brand} graphics card`,
+      preorderPriceEur: item.preorderPriceEur,
+      marketAvgEur: item.marketAvgEur,
+      basePriceEur: item.priceEur,
+      checkoutItemType: itemType,
+      specs: [
+        { label: "Brand", value: item.brand },
+        { label: "VRAM", value: `${item.vramGb}GB` },
+        { label: "Architecture", value: item.architecture },
+        { label: "AI Score", value: String(item.aiScore) },
+      ],
+    };
+  }
+
+  if (itemType === "cpu") {
+    const item = catalog.cpus.find((entry) => entry.id === itemId);
+    if (!item) return null;
+    return {
+      itemType,
+      itemId,
+      name: item.name,
+      subtitle: `${item.brand} processor`,
+      preorderPriceEur: item.preorderPriceEur,
+      marketAvgEur: item.marketAvgEur,
+      basePriceEur: item.priceEur,
+      checkoutItemType: itemType,
+      specs: [
+        { label: "Brand", value: item.brand },
+        { label: "Cores / Threads", value: `${item.cores} / ${item.threads}` },
+        { label: "Socket", value: item.socket },
+        { label: "AI Score", value: String(item.aiScore) },
+      ],
+    };
+  }
+
+  if (itemType === "ram_kit") {
+    const item = catalog.ramKits.find((entry) => entry.id === itemId);
+    if (!item) return null;
+    return {
+      itemType,
+      itemId,
+      name: item.name,
+      subtitle: `${item.brand} memory kit`,
+      preorderPriceEur: item.preorderPriceEur,
+      marketAvgEur: item.marketAvgEur,
+      basePriceEur: item.priceEur,
+      checkoutItemType: itemType,
+      specs: [
+        { label: "Capacity", value: `${item.capacityGb}GB (${item.modules})` },
+        { label: "Generation", value: item.ddrGen },
+        { label: "Speed", value: `${item.speedMtS} MT/s` },
+        { label: "Latency", value: item.casLatency },
+        { label: "Profiles", value: item.profileSupport },
+      ],
+    };
+  }
+
+  if (itemType === "power_supply") {
+    const item = catalog.powerSupplies.find((entry) => entry.id === itemId);
+    if (!item) return null;
+    return {
+      itemType,
+      itemId,
+      name: item.name,
+      subtitle: `${item.brand} power supply`,
+      preorderPriceEur: item.preorderPriceEur,
+      marketAvgEur: item.marketAvgEur,
+      basePriceEur: item.priceEur,
+      checkoutItemType: itemType,
+      specs: [
+        { label: "Wattage", value: `${item.wattage}W` },
+        { label: "Efficiency", value: item.efficiencyRating },
+        { label: "ATX Standard", value: item.atxStandard },
+        { label: "Modularity", value: item.modularity },
+        { label: "PCIe5 / 12V-2x6", value: item.pcie5Support ? "Supported" : "No" },
+      ],
+    };
+  }
+
+  if (itemType === "case") {
+    const item = catalog.cases.find((entry) => entry.id === itemId);
+    if (!item) return null;
+    return {
+      itemType,
+      itemId,
+      name: item.name,
+      subtitle: `${item.brand} PC case`,
+      preorderPriceEur: item.preorderPriceEur,
+      marketAvgEur: item.marketAvgEur,
+      basePriceEur: item.priceEur,
+      checkoutItemType: itemType,
+      specs: [
+        { label: "Form Factor", value: item.formFactor },
+        { label: "Max GPU Length", value: `${item.maxGpuMm}mm` },
+        { label: "Radiator Support", value: item.radiatorSupport },
+        { label: "Included Fans", value: item.includedFans },
+      ],
+    };
+  }
+
+  if (itemType === "motherboard") {
+    const item = catalog.motherboards.find((entry) => entry.id === itemId);
+    if (!item) return null;
+    return {
+      itemType,
+      itemId,
+      name: item.name,
+      subtitle: `${item.brand} motherboard`,
+      preorderPriceEur: item.preorderPriceEur,
+      marketAvgEur: item.marketAvgEur,
+      basePriceEur: item.priceEur,
+      checkoutItemType: itemType,
+      specs: [
+        { label: "Socket", value: item.socket },
+        { label: "Chipset", value: item.chipset },
+        { label: "Memory Support", value: item.memorySupport },
+        { label: "Max Memory", value: `${item.maxMemoryGb}GB` },
+        { label: "PCIe Gen5", value: item.pcieGen5Support ? "Yes" : "No" },
+      ],
+    };
+  }
+
+  if (itemType === "compact_ai_system") {
+    const item = catalog.compactAiSystems.find((entry) => entry.id === itemId);
+    if (!item) return null;
+    return {
+      itemType,
+      itemId,
+      name: item.name,
+      subtitle: `${item.vendor} compact AI system`,
+      preorderPriceEur: item.preorderPriceEur,
+      marketAvgEur: item.marketAvgEur,
+      basePriceEur: item.priceEur,
+      checkoutItemType: itemType,
+      specs: [
+        { label: "Chip", value: item.chip },
+        { label: "Memory", value: `${item.memoryGb}GB unified` },
+        { label: "Storage", value: `${item.storageGb}GB SSD` },
+        { label: "GPU Class", value: item.gpuClass },
+        { label: "Installed Software", value: item.installedSoftware },
+        { label: "Stock", value: item.inStock ? "In Stock" : "Out of Stock" },
+      ],
+    };
+  }
+
+  if (itemType === "storage_drive") {
+    const item = catalog.storageDrives.find((entry) => entry.id === itemId);
+    if (!item) return null;
+    return {
+      itemType,
+      itemId,
+      name: item.name,
+      subtitle: `${item.brand} storage drive`,
+      preorderPriceEur: item.preorderPriceEur,
+      marketAvgEur: item.marketAvgEur,
+      basePriceEur: item.priceEur,
+      checkoutItemType: itemType,
+      specs: [
+        { label: "Type", value: item.driveType },
+        { label: "Interface", value: item.interface },
+        { label: "Capacity", value: `${item.capacityGb}GB` },
+        { label: "Seq Read", value: `${item.seqReadMbS} MB/s` },
+        { label: "Endurance", value: item.enduranceTbw === 0 ? "n/a" : `${item.enduranceTbw} TBW` },
+      ],
+    };
+  }
+
+  const item = catalog.cpuCoolers.find((entry) => entry.id === itemId);
+  if (!item) return null;
+  return {
+    itemType: "cpu_cooler",
+    itemId,
+    name: item.name,
+    subtitle: `${item.brand} CPU cooler`,
+    preorderPriceEur: item.preorderPriceEur,
+    marketAvgEur: item.marketAvgEur,
+    basePriceEur: item.priceEur,
+    checkoutItemType: "cpu_cooler",
+    specs: [
+      { label: "Type", value: item.coolerType },
+      { label: "Height / Radiator", value: `${item.radiatorOrHeightMm}mm` },
+      { label: "Socket Support", value: item.socketSupport },
+      { label: "Max TDP", value: `${item.maxTdpW}W` },
+      { label: "Noise", value: item.noiseDb },
+    ],
   };
 }
