@@ -28,20 +28,6 @@ export type CpuRecord = {
   price_eur: number;
 };
 
-export type PrebuiltRecord = {
-  id: number;
-  name: string;
-  vendor: string;
-  description: string;
-  ram_gb: number;
-  storage_gb: number;
-  llm_max_model_size: string;
-  price_eur: number;
-  in_stock: number;
-  cpu_name: string;
-  gpu_name: string;
-};
-
 export type RamKitRecord = {
   id: number;
   name: string;
@@ -2769,30 +2755,6 @@ export function listCpus(): CpuRecord[] {
   return db
     .prepare("SELECT id, name, brand, cores, threads, socket, ai_score, price_eur FROM cpus ORDER BY ai_score DESC")
     .all() as CpuRecord[];
-}
-
-export function listPrebuilts(): PrebuiltRecord[] {
-  const db = getDb();
-  return db
-    .prepare(`
-      SELECT
-        p.id,
-        p.name,
-        p.vendor,
-        p.description,
-        p.ram_gb,
-        p.storage_gb,
-        p.llm_max_model_size,
-        p.price_eur,
-        p.in_stock,
-        c.name AS cpu_name,
-        g.name AS gpu_name
-      FROM prebuilts p
-      JOIN cpus c ON c.id = p.cpu_id
-      JOIN gpus g ON g.id = p.gpu_id
-      ORDER BY p.price_eur DESC
-    `)
-    .all() as PrebuiltRecord[];
 }
 
 export function listRamKits(): RamKitRecord[] {

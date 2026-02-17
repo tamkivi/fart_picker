@@ -7,7 +7,6 @@ import {
   listGpus,
   listMotherboards,
   listPowerSupplies,
-  listPrebuilts,
   listRamKits,
   listStorageDrives,
   upsertEstonianPriceCheck,
@@ -140,9 +139,6 @@ function collectComponents(): ComponentRow[] {
   });
   listCpus().forEach((item) => {
     components.push({ category: "cpu", itemId: item.id, name: item.name, basePriceEur: item.price_eur });
-  });
-  listPrebuilts().forEach((item) => {
-    components.push({ category: "prebuilt", itemId: item.id, name: item.name, basePriceEur: item.price_eur });
   });
   listRamKits().forEach((item) => {
     components.push({ category: "ram_kit", itemId: item.id, name: item.name, basePriceEur: item.price_eur });

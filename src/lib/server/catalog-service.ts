@@ -9,7 +9,6 @@ import {
   listGpus,
   listMotherboards,
   listPowerSupplies,
-  listPrebuilts,
   listProfileBuilds,
   listRamKits,
   listStorageDrives,
@@ -35,22 +34,6 @@ export type PublicCpu = {
   threads: number;
   socket: string;
   aiScore: number;
-  priceEur: number;
-  preorderPriceEur: number;
-  marketAvgEur: number | null;
-};
-
-export type PublicPrebuilt = {
-  id: number;
-  name: string;
-  vendor: string;
-  description: string;
-  ramGb: number;
-  storageGb: number;
-  llmMaxModelSize: string;
-  inStock: boolean;
-  cpuName: string;
-  gpuName: string;
   priceEur: number;
   preorderPriceEur: number;
   marketAvgEur: number | null;
@@ -220,21 +203,6 @@ export function getHomeCatalogView() {
     priceEur: cpu.price_eur,
   }));
 
-  const prebuilts: PublicPrebuilt[] = listPrebuilts().map((prebuilt) => ({
-    ...resolvePreorderPrice("prebuilt", prebuilt.id, prebuilt.price_eur),
-    id: prebuilt.id,
-    name: prebuilt.name,
-    vendor: prebuilt.vendor,
-    description: prebuilt.description,
-    ramGb: prebuilt.ram_gb,
-    storageGb: prebuilt.storage_gb,
-    llmMaxModelSize: prebuilt.llm_max_model_size,
-    inStock: prebuilt.in_stock === 1,
-    cpuName: prebuilt.cpu_name,
-    gpuName: prebuilt.gpu_name,
-    priceEur: prebuilt.price_eur,
-  }));
-
   const profileBuilds: PublicProfileBuild[] = listProfileBuilds().map((build) => ({
     id: build.id,
     profileKey: build.profile_key,
@@ -351,7 +319,6 @@ export function getHomeCatalogView() {
   return {
     gpus,
     cpus,
-    prebuilts,
     ramKits,
     powerSupplies,
     cases,
