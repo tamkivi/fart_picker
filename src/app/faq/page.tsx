@@ -75,7 +75,13 @@ export default async function FaqPage() {
         </header>
 
         <div className="space-y-4">
-          <section className="wireframe-panel border-2 border-[color:var(--accent)] p-6">
+          <section
+            className="wireframe-panel border-2 border-[color:var(--accent)] p-7 md:p-8"
+            style={{
+              boxShadow:
+                "0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 0 18px rgba(255, 0, 120, 0.12), 0 0 24px rgba(0, 180, 255, 0.1), 0 0 30px rgba(120, 255, 120, 0.1)",
+            }}
+          >
             <h2 className="font-display text-2xl font-semibold">Why AI builds?</h2>
             <p className="mt-3 text-sm text-[color:var(--muted)]">
               {lang === "et"
