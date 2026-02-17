@@ -107,6 +107,14 @@ export default async function Home() {
           <p className="mt-2 max-w-3xl text-sm text-[color:var(--muted)]">
             {copy.pricingDescription}
           </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Link href="/faq" className="label-pill inline-block">
+              Why AI-ready builds?
+            </Link>
+            <Link href="/about" className="label-pill inline-block">
+              About us
+            </Link>
+          </div>
         </header>
 
         <ProfileBuildsBrowser profiles={profileCards} builds={browserBuilds} />

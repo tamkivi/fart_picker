@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Profile = {
   key: string;
@@ -42,7 +42,8 @@ export function ProfileBuildsBrowser({
   profiles: Profile[];
   builds: ProfileBuild[];
 }) {
-  const [activeProfileKey, setActiveProfileKey] = useState(profiles[0]?.key ?? "");
+  const [activeProfileKey, setActiveProfileKey] = useState("");
+  const [hasSelectedProfile, setHasSelectedProfile] = useState(false);
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
   const possibleBuildsRef = useRef<HTMLElement | null>(null);
 
@@ -61,6 +62,12 @@ export function ProfileBuildsBrowser({
   const selectedBuild =
     activeBuilds.find((build) => build.id === selectedBuildId) ?? (activeBuilds.length > 0 ? activeBuilds[0] : null);
 
+  useEffect(() => {
+    if (hasSelectedProfile && activeProfileKey) {
+      possibleBuildsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [activeProfileKey, hasSelectedProfile]);
+
   return (
     <section className="mt-8">
       <p className="mb-4 text-sm font-semibold text-[color:var(--muted)]">
@@ -75,10 +82,8 @@ export function ProfileBuildsBrowser({
               type="button"
               onClick={() => {
                 setActiveProfileKey(profile.key);
+                setHasSelectedProfile(true);
                 setSelectedBuildId(buildsByProfile[profile.key]?.[0]?.id ?? null);
-                requestAnimationFrame(() => {
-                  possibleBuildsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                });
               }}
               className={`wireframe-panel stagger-in p-5 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
               style={{ animationDelay: `${index * 100}ms` }}
@@ -97,7 +102,8 @@ export function ProfileBuildsBrowser({
         })}
       </div>
 
-      <section ref={possibleBuildsRef} className="wireframe-panel mt-6 p-6">
+      {hasSelectedProfile ? (
+        <section ref={possibleBuildsRef} className="wireframe-panel mt-6 p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
@@ -143,7 +149,8 @@ export function ProfileBuildsBrowser({
             ))}
           </div>
         )}
-      </section>
+        </section>
+      ) : null}
     </section>
   );
 }
