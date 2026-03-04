@@ -42,9 +42,11 @@ export function ProfileBuildsBrowser({
   profiles: Profile[];
   builds: ProfileBuild[];
 }) {
+  const [showBuilds, setShowBuilds] = useState(false);
   const [activeProfileKey, setActiveProfileKey] = useState(profiles[0]?.key ?? "");
   const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
   const possibleBuildsRef = useRef<HTMLElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
 
   const buildsByProfile = useMemo(() => {
     return builds.reduce<Record<string, ProfileBuild[]>>((acc, build) => {
@@ -62,7 +64,28 @@ export function ProfileBuildsBrowser({
     activeBuilds.find((build) => build.id === selectedBuildId) ?? (activeBuilds.length > 0 ? activeBuilds[0] : null);
 
   return (
-    <section className="mt-12">
+    <section ref={sectionRef} className="mt-12">
+      {!showBuilds ? (
+        <div className="flex justify-center py-10">
+          <button
+            type="button"
+            onClick={() => {
+              setShowBuilds(true);
+              requestAnimationFrame(() => {
+                sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+              });
+            }}
+            className="rounded-2xl border-2 border-[color:var(--accent)] px-10 py-5 text-center font-semibold transition hover:-translate-y-0.5"
+            style={{ boxShadow: "0 0 32px color-mix(in srgb, var(--accent) 25%, transparent)" }}
+          >
+            <span className="font-display block text-xl">Show me the different kinds of builds!</span>
+            <span className="mt-1 block text-sm text-[color:var(--muted)]">
+              Local inference · Fine-tuning · Hybrid AI + Gaming
+            </span>
+          </button>
+        </div>
+      ) : (
+        <>
       <p className="mb-6 text-sm font-semibold text-[color:var(--muted)]">
         Choose the type of build you&apos;re looking for:
       </p>
@@ -155,6 +178,8 @@ export function ProfileBuildsBrowser({
           </div>
         )}
       </section>
+        </>
+      )}
     </section>
   );
 }
