@@ -103,8 +103,7 @@ export default async function Home() {
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link
               href="/faq"
-              className="inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-6 py-3 text-sm font-semibold text-white"
-              style={{ boxShadow: "0 0 24px color-mix(in srgb, var(--accent) 45%, transparent)" }}
+              className="glow-pulse inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-8 py-4 text-base font-bold text-white"
             >
               Why AI-ready builds? →
             </Link>

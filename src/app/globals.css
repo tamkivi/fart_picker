@@ -31,15 +31,70 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-public-sans), sans-serif;
-  background-image:
-    radial-gradient(circle at 20% -10%, #bdd6cb 0%, transparent 35%),
-    radial-gradient(circle at 90% 0%, #d4ddf2 0%, transparent 30%);
 }
 
-[data-theme="dark"] body {
-  background-image:
-    radial-gradient(circle at 20% -10%, #24423b 0%, transparent 35%),
-    radial-gradient(circle at 90% 0%, #29395f 0%, transparent 30%);
+.gradient-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.gradient-bg::before,
+.gradient-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+}
+
+.gradient-bg::before {
+  width: 65vw;
+  height: 65vw;
+  top: -25%;
+  left: -12%;
+  background: #bdd6cb;
+  animation: drift-a 20s ease-in-out infinite alternate;
+}
+
+.gradient-bg::after {
+  width: 55vw;
+  height: 55vw;
+  top: -20%;
+  right: -12%;
+  background: #d4ddf2;
+  animation: drift-b 26s ease-in-out infinite alternate;
+}
+
+[data-theme="dark"] .gradient-bg::before {
+  background: #24423b;
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .gradient-bg::after {
+  background: #29395f;
+  opacity: 0.6;
+}
+
+@keyframes drift-a {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(7%, 14%) scale(1.12); }
+}
+
+@keyframes drift-b {
+  from { transform: translate(0, 0) scale(1.06); }
+  to   { transform: translate(-9%, 10%) scale(0.94); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 45%, transparent); }
+  50%       { box-shadow: 0 0 48px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 88px color-mix(in srgb, var(--accent) 25%, transparent); }
+}
+
+.glow-pulse {
+  animation: glow-pulse 2.8s ease-in-out infinite;
 }
 
 .font-display {
