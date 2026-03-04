@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { parseApiMessage } from "@/lib/parse-api-message";
 
 type AuthUser = {
   id: number;
@@ -16,17 +17,6 @@ type MeResponse = {
 };
 
 type AuthMode = "login" | "register";
-
-async function parseApiMessage(response: Response): Promise<string | null> {
-  const contentType = response.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
-    const data = (await response.json().catch(() => null)) as { message?: string } | null;
-    return data?.message ?? null;
-  }
-
-  const text = await response.text().catch(() => "");
-  return text.trim() ? text.slice(0, 200) : null;
-}
 
 export function AuthPanel() {
   const [me, setMe] = useState<MeResponse | null>(null);

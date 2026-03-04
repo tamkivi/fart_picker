@@ -70,7 +70,6 @@ export default async function Home() {
     source_refs: build.sourceRefs,
     cpu_name: build.cpuName,
     gpu_name: build.gpuName,
-    profile_label: build.profileLabel,
   }));
 
   return (
