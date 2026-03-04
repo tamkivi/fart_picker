@@ -77,20 +77,31 @@ export function ProfileBuildsBrowser({
                 setActiveProfileKey(profile.key);
                 setSelectedBuildId(buildsByProfile[profile.key]?.[0]?.id ?? null);
                 requestAnimationFrame(() => {
-                  possibleBuildsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  const el = possibleBuildsRef.current;
+                  if (!el) return;
+                  // Only scroll if the builds section is completely below the viewport
+                  if (el.getBoundingClientRect().top > window.innerHeight) {
+                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
                 });
               }}
               className={`wireframe-panel stagger-in p-7 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
-              style={{ animationDelay: `${index * 100}ms` }}
+              style={{
+                animationDelay: `${index * 100}ms`,
+                ...(isActive ? { background: "color-mix(in srgb, var(--accent) 8%, var(--panel))" } : {}),
+              }}
             >
-              <p className="label-pill inline-block">
+              <p
+                className="label-pill inline-block"
+                style={isActive ? { background: "var(--accent)", color: "#fff", borderColor: "var(--accent)" } : {}}
+              >
                 {categoryLabelByProfileKey[profile.key] ?? "Build Category"}
               </p>
               <h2 className="font-display mt-6 text-2xl font-semibold">{profile.name}</h2>
               <p className="mt-4 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
               <p className="mt-3 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
               <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
-                {isActive ? "Selected" : "Click to view builds"}
+                {isActive ? "↳ Selected" : "Click to view builds"}
               </p>
             </button>
           );
