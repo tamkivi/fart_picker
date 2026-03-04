@@ -420,7 +420,12 @@ function expiresAt(days: number): string {
   return until.toISOString();
 }
 
+const KNOWN_TABLES = new Set(["gpus", "cpus", "prebuilts", "profile_builds", "orders"]);
+
 function hasColumn(db: DatabaseSync, tableName: string, columnName: string): boolean {
+  if (!KNOWN_TABLES.has(tableName)) {
+    throw new Error(`Unknown table: ${tableName}`);
+  }
   const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
   return columns.some((column) => column.name === columnName);
 }

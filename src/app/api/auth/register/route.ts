@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { registerAccount, createSessionForCredentials } from "@/lib/catalog-db";
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from "@/lib/auth-session";
+import { sanitizeIpAddress, checkRateLimit } from "@/lib/request-utils";
 
 export async function POST(request: Request) {
   try {
+    const ipAddress = sanitizeIpAddress(request.headers.get("x-forwarded-for"));
+    const rateLimitKey = `register:${ipAddress ?? "unknown"}`;
+    if (!checkRateLimit(rateLimitKey, 5, 60_000)) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const body = (await request.json().catch(() => null)) as
       | {
           email?: string;
@@ -29,7 +36,7 @@ export async function POST(request: Request) {
     const auth = await createSessionForCredentials({
       email: body.email,
       password: body.password,
-      ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+      ipAddress,
       userAgent: request.headers.get("user-agent") ?? undefined,
     });
 

@@ -78,10 +78,10 @@ export default async function Home() {
   }));
 
   return (
-    <main className="min-h-screen px-6 py-10 md:px-12">
+    <main className="min-h-screen px-6 py-16 md:px-12">
       <section className="mx-auto max-w-6xl">
         <Masthead />
-        <header className="stagger-in mb-8">
+        <header className="stagger-in mb-14">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
               <Link href="/about" className="label-pill inline-block">
@@ -97,17 +97,17 @@ export default async function Home() {
               <AuthPanel />
             </div>
           </div>
-          <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
+          <h1 className="font-display mt-6 text-4xl font-semibold tracking-tight md:text-6xl">
             {copy.headingLead}
             <span className="ml-2 text-[color:var(--accent)]">{copy.headingAccent}</span>
           </h1>
-          <p className="mt-4 max-w-3xl text-lg text-[color:var(--muted)]">
+          <p className="mt-7 max-w-3xl text-lg text-[color:var(--muted)]">
             {copy.preorderDescription}
           </p>
           <p className="mt-2 max-w-3xl text-sm text-[color:var(--muted)]">
             {copy.pricingDescription}
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-4">
+          <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link
               href="/faq"
               className="inline-block rounded-full bg-[color:var(--accent)] px-5 py-2.5 text-sm font-semibold text-white"
@@ -125,14 +125,14 @@ export default async function Home() {
 
         <ProfileBuildsBrowser profiles={profileCards} builds={browserBuilds} />
 
-        <section className="wireframe-panel mt-6 p-6 stagger-in" style={{ animationDelay: "900ms" }}>
-          <div className="mb-4 flex items-center justify-between">
+        <section className="wireframe-panel mt-10 p-8 stagger-in" style={{ animationDelay: "900ms" }}>
+          <div className="mb-8 flex items-center justify-between">
             <h3 className="font-display text-3xl font-semibold">Compact AI Systems (Mac mini)</h3>
             <span className="label-pill">{compactAiSystems.length} listed</span>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             {compactAiSystems.map((system) => (
-              <article key={system.id} className="rounded-lg border border-[color:var(--panel-border)] p-4">
+              <article key={system.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                 <p className="font-display text-xl font-semibold">{system.name}</p>
                 <p className="mt-1 text-sm text-[color:var(--muted)]">{system.vendor}</p>
                 <p className="mt-2 text-sm text-[color:var(--muted)]">{system.bestFor}</p>
@@ -144,7 +144,7 @@ export default async function Home() {
                   <span className="font-semibold">Preorder €{system.preorderPriceEur}</span>
                   <span className="label-pill">{system.inStock ? "In Stock" : "Out of Stock"}</span>
                 </div>
-                <Link href={`/catalog/compact_ai_system/${system.id}`} className="mt-3 inline-block label-pill">
+                <Link href={`/catalog/compact_ai_system/${system.id}`} className="mt-5 inline-block label-pill">
                   View more details
                 </Link>
               </article>
@@ -152,43 +152,43 @@ export default async function Home() {
           </div>
         </section>
 
-        <div className="mt-8 grid items-start gap-6 md:grid-cols-2">
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "350ms" }}>
+        <div className="mt-10 grid items-start gap-8 md:grid-cols-2">
+          <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "350ms" }}>
             <details className="catalog-dropdown">
-              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
+              <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">GPU Catalog</h3>
                 <span className="label-pill">{gpus.length} listed</span>
               </summary>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {gpus.map((gpu) => (
-                  <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                     <p className="font-semibold">{gpu.name}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                       {gpu.brand} | {gpu.vramGb}GB VRAM | {gpu.architecture} | AI {gpu.aiScore}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{gpu.preorderPriceEur}</p>
-                    <Link href={`/catalog/gpu/${gpu.id}`} className="mt-3 inline-block label-pill">View more details</Link>
+                    <Link href={`/catalog/gpu/${gpu.id}`} className="mt-5 inline-block label-pill">View more details</Link>
                   </div>
                 ))}
               </div>
             </details>
           </section>
 
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "450ms" }}>
+          <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "450ms" }}>
             <details className="catalog-dropdown">
-              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
+              <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">CPU Catalog</h3>
                 <span className="label-pill">{cpus.length} listed</span>
               </summary>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {cpus.map((cpu) => (
-                  <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                     <p className="font-semibold">{cpu.name}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                       {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.aiScore}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cpu.preorderPriceEur}</p>
-                    <Link href={`/catalog/cpu/${cpu.id}`} className="mt-3 inline-block label-pill">View more details</Link>
+                    <Link href={`/catalog/cpu/${cpu.id}`} className="mt-5 inline-block label-pill">View more details</Link>
                   </div>
                 ))}
               </div>
@@ -196,38 +196,38 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-6 grid items-start gap-6 md:grid-cols-2">
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "620ms" }}>
+        <div className="mt-8 grid items-start gap-8 md:grid-cols-2">
+          <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "620ms" }}>
             <details className="catalog-dropdown">
-              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
+              <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">RAM Kits</h3>
                 <span className="label-pill">{ramKits.length} listed</span>
               </summary>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {ramKits.map((ramKit) => (
-                  <div key={ramKit.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <div key={ramKit.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                     <p className="font-semibold">{ramKit.name}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                       {ramKit.modules} | {ramKit.ddrGen} {ramKit.speedMtS} | {ramKit.casLatency}
                     </p>
                     <p className="font-mono text-xs text-[color:var(--muted)]">Profiles: {ramKit.profileSupport}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{ramKit.preorderPriceEur}</p>
-                    <Link href={`/catalog/ram_kit/${ramKit.id}`} className="mt-3 inline-block label-pill">View more details</Link>
+                    <Link href={`/catalog/ram_kit/${ramKit.id}`} className="mt-5 inline-block label-pill">View more details</Link>
                   </div>
                 ))}
               </div>
             </details>
           </section>
 
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "690ms" }}>
+          <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "690ms" }}>
             <details className="catalog-dropdown">
-              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
+              <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Motherboards</h3>
                 <span className="label-pill">{motherboards.length} listed</span>
               </summary>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {motherboards.map((motherboard) => (
-                  <div key={motherboard.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <div key={motherboard.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                     <p className="font-semibold">{motherboard.name}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                       {motherboard.socket} | {motherboard.chipset} | {motherboard.memorySupport}
@@ -236,7 +236,7 @@ export default async function Home() {
                       Max memory: {motherboard.maxMemoryGb}GB | PCIe Gen5: {motherboard.pcieGen5Support ? "Yes" : "No"}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{motherboard.preorderPriceEur}</p>
-                    <Link href={`/catalog/motherboard/${motherboard.id}`} className="mt-3 inline-block label-pill">View more details</Link>
+                    <Link href={`/catalog/motherboard/${motherboard.id}`} className="mt-5 inline-block label-pill">View more details</Link>
                   </div>
                 ))}
               </div>
@@ -244,16 +244,16 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-6 grid items-start gap-6 md:grid-cols-2">
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "760ms" }}>
+        <div className="mt-8 grid items-start gap-8 md:grid-cols-2">
+          <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "760ms" }}>
             <details className="catalog-dropdown">
-              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
+              <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Power Supplies</h3>
                 <span className="label-pill">{powerSupplies.length} listed</span>
               </summary>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {powerSupplies.map((psu) => (
-                  <div key={psu.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <div key={psu.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                     <p className="font-semibold">{psu.name}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                       {psu.wattage}W | {psu.efficiencyRating} | {psu.atxStandard}
@@ -262,22 +262,22 @@ export default async function Home() {
                       {psu.modularity} | 12V-2x6/PCIe5: {psu.pcie5Support ? "Supported" : "No"}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{psu.preorderPriceEur}</p>
-                    <Link href={`/catalog/power_supply/${psu.id}`} className="mt-3 inline-block label-pill">View more details</Link>
+                    <Link href={`/catalog/power_supply/${psu.id}`} className="mt-5 inline-block label-pill">View more details</Link>
                   </div>
                 ))}
               </div>
             </details>
           </section>
 
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "830ms" }}>
+          <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "830ms" }}>
             <details className="catalog-dropdown">
-              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
+              <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Cases</h3>
                 <span className="label-pill">{cases.length} listed</span>
               </summary>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {cases.map((pcCase) => (
-                  <div key={pcCase.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <div key={pcCase.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                     <p className="font-semibold">{pcCase.name}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                       {pcCase.formFactor} | Max GPU: {pcCase.maxGpuMm}mm
@@ -286,7 +286,7 @@ export default async function Home() {
                       Radiator: {pcCase.radiatorSupport} | Fans: {pcCase.includedFans}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{pcCase.preorderPriceEur}</p>
-                    <Link href={`/catalog/case/${pcCase.id}`} className="mt-3 inline-block label-pill">View more details</Link>
+                    <Link href={`/catalog/case/${pcCase.id}`} className="mt-5 inline-block label-pill">View more details</Link>
                   </div>
                 ))}
               </div>
@@ -294,16 +294,16 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-6 grid items-start gap-6 md:grid-cols-2">
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "970ms" }}>
+        <div className="mt-8 grid items-start gap-8 md:grid-cols-2">
+          <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "970ms" }}>
             <details className="catalog-dropdown">
-              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
+              <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Storage Drives</h3>
                 <span className="label-pill">{storageDrives.length} listed</span>
               </summary>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {storageDrives.map((drive) => (
-                  <div key={drive.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <div key={drive.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                     <p className="font-semibold">{drive.name}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                       {drive.driveType} | {drive.interface} | {drive.capacityGb}GB
@@ -312,22 +312,22 @@ export default async function Home() {
                       Read: {drive.seqReadMbS} MB/s | TBW: {drive.enduranceTbw === 0 ? "n/a" : drive.enduranceTbw}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{drive.preorderPriceEur}</p>
-                    <Link href={`/catalog/storage_drive/${drive.id}`} className="mt-3 inline-block label-pill">View more details</Link>
+                    <Link href={`/catalog/storage_drive/${drive.id}`} className="mt-5 inline-block label-pill">View more details</Link>
                   </div>
                 ))}
               </div>
             </details>
           </section>
 
-          <section className="wireframe-panel p-6 stagger-in" style={{ animationDelay: "1040ms" }}>
+          <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "1040ms" }}>
             <details className="catalog-dropdown">
-              <summary className="catalog-summary mb-4 flex cursor-pointer list-none items-center justify-between">
+              <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">CPU Coolers</h3>
                 <span className="label-pill">{cpuCoolers.length} listed</span>
               </summary>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {cpuCoolers.map((cooler) => (
-                  <div key={cooler.id} className="rounded-lg border border-[color:var(--panel-border)] p-3">
+                  <div key={cooler.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
                     <p className="font-semibold">{cooler.name}</p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
                       {cooler.coolerType} | Size: {cooler.radiatorOrHeightMm}mm | Max TDP: {cooler.maxTdpW}W
@@ -336,7 +336,7 @@ export default async function Home() {
                       Sockets: {cooler.socketSupport} | Noise: {cooler.noiseDb}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cooler.preorderPriceEur}</p>
-                    <Link href={`/catalog/cpu_cooler/${cooler.id}`} className="mt-3 inline-block label-pill">View more details</Link>
+                    <Link href={`/catalog/cpu_cooler/${cooler.id}`} className="mt-5 inline-block label-pill">View more details</Link>
                   </div>
                 ))}
               </div>

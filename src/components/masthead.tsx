@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Masthead() {
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
+    <div className="mb-10 flex flex-wrap items-center justify-between gap-2">
       <Link href="/" className="font-display text-3xl font-semibold tracking-tight">
         fart_picker
       </Link>

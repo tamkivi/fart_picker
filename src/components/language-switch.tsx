@@ -10,8 +10,13 @@ type LanguageSwitchProps = {
 export function LanguageSwitch({ lang }: LanguageSwitchProps) {
   const router = useRouter();
 
+  const VALID_LANGUAGES: SiteLanguage[] = ["en", "et"];
+
   function setLanguage(nextLanguage: SiteLanguage) {
     if (nextLanguage === lang) {
+      return;
+    }
+    if (!VALID_LANGUAGES.includes(nextLanguage)) {
       return;
     }
     document.cookie = `${LANGUAGE_COOKIE_NAME}=${nextLanguage}; path=/; max-age=31536000; samesite=lax`;

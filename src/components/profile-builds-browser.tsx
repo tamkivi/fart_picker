@@ -62,11 +62,11 @@ export function ProfileBuildsBrowser({
     activeBuilds.find((build) => build.id === selectedBuildId) ?? (activeBuilds.length > 0 ? activeBuilds[0] : null);
 
   return (
-    <section className="mt-8">
-      <p className="mb-4 text-sm font-semibold text-[color:var(--muted)]">
+    <section className="mt-12">
+      <p className="mb-6 text-sm font-semibold text-[color:var(--muted)]">
         Choose the type of build you&apos;re looking for:
       </p>
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-8 md:grid-cols-3">
         {profiles.map((profile, index) => {
           const isActive = activeProfileKey === profile.key;
           return (
@@ -80,16 +80,16 @@ export function ProfileBuildsBrowser({
                   possibleBuildsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                 });
               }}
-              className={`wireframe-panel stagger-in p-5 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
+              className={`wireframe-panel stagger-in p-7 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <p className="label-pill inline-block">
                 {categoryLabelByProfileKey[profile.key] ?? "Build Category"}
               </p>
-              <h2 className="font-display mt-4 text-2xl font-semibold">{profile.name}</h2>
-              <p className="mt-3 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
-              <p className="mt-2 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
-              <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
+              <h2 className="font-display mt-6 text-2xl font-semibold">{profile.name}</h2>
+              <p className="mt-4 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
+              <p className="mt-3 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
+              <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
                 {isActive ? "Selected" : "Click to view builds"}
               </p>
             </button>
@@ -97,8 +97,8 @@ export function ProfileBuildsBrowser({
         })}
       </div>
 
-      <section ref={possibleBuildsRef} className="wireframe-panel mt-16 p-6">
-        <div className="mb-4 flex items-center justify-between gap-3">
+      <section ref={possibleBuildsRef} className="wireframe-panel mt-20 p-8">
+        <div className="mb-8 flex items-center justify-between gap-3">
           <div>
             <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
             <p className="mt-1 text-sm text-[color:var(--muted)]">
@@ -111,23 +111,23 @@ export function ProfileBuildsBrowser({
         {activeBuilds.length === 0 ? (
           <p className="text-sm text-[color:var(--muted)]">No builds available for this profile yet.</p>
         ) : (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             {activeBuilds.map((build) => (
               <article
                 key={build.id}
-                className={`rounded-lg border p-4 text-left transition ${selectedBuild?.id === build.id ? "border-[color:var(--accent)] ring-1 ring-[color:var(--accent)]" : "border-[color:var(--panel-border)] hover:-translate-y-0.5"}`}
+                className={`rounded-lg border p-6 text-left transition ${selectedBuild?.id === build.id ? "border-[color:var(--accent)] ring-1 ring-[color:var(--accent)]" : "border-[color:var(--panel-border)] hover:-translate-y-0.5"}`}
                 onClick={() => setSelectedBuildId(build.id)}
               >
                 <p className="font-display text-xl font-semibold">{build.build_name}</p>
-                <p className="mt-2 text-sm text-[color:var(--muted)]">{build.notes}</p>
-                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">GPU: {build.gpu_name}</p>
+                <p className="mt-3 text-sm text-[color:var(--muted)]">{build.notes}</p>
+                <p className="mt-5 font-mono text-xs text-[color:var(--muted)]">GPU: {build.gpu_name}</p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">CPU: {build.cpu_name}</p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">
                   RAM: {build.ram_gb}GB | Storage: {build.storage_gb}GB
                 </p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">Model target: {build.target_model}</p>
-                <p className="mt-3 text-base font-semibold">Est. €{build.estimated_price_eur}</p>
-                <div className="mt-3 flex items-center justify-between gap-2">
+                <p className="mt-5 text-base font-semibold">Est. €{build.estimated_price_eur}</p>
+                <div className="mt-4 flex items-center justify-between gap-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
                     {selectedBuild?.id === build.id ? "Selected build" : "Click to select"}
                   </p>
