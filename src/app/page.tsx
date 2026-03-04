@@ -16,12 +16,8 @@ export default async function Home() {
     headingAccent: lang === "et" ? "LLM võimekusreziimiga" : "LLM capability mode",
     preorderDescription:
       lang === "et"
-        ? "See on ettetellimuse sait. Iga tellimus ehitatakse, komplekteeritakse ja seadistatakse täielikult pärast ostu vastavalt valitud ehitusprofiilile."
-        : "This is a preorder site. Every order is built, assembled, and fully configured after purchase based on your selected build profile.",
-    pricingDescription:
-      lang === "et"
-        ? "Hinnad arvutatakse iga päev ümber Eesti kuulutuste põhjal ning sisaldavad 15% komplekteerimise ja seadistamise marginaali."
-        : "Prices are recalculated daily from Estonian listings and include a 15% assembly/setup margin.",
+        ? "Vali ehitusprofiil, tee ettetellimus ja saa täielikult seadistatud AI tööjaam. Komponente otsitakse Eesti kuulutustest iga päev."
+        : "Choose a build profile, place a preorder, and receive a fully configured AI workstation. Parts are sourced from Estonian listings daily.",
   };
 
   const profileCards = [
@@ -81,7 +77,7 @@ export default async function Home() {
     <main className="min-h-screen px-6 py-16 md:px-12">
       <section className="mx-auto max-w-6xl">
         <Masthead />
-        <header className="stagger-in mb-14">
+        <header className="stagger-in mb-14" style={{ animationDelay: "80ms" }}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
               <Link href="/about" className="label-pill inline-block">
@@ -101,22 +97,20 @@ export default async function Home() {
             {copy.headingLead}
             <span className="ml-2 text-[color:var(--accent)]">{copy.headingAccent}</span>
           </h1>
-          <p className="mt-7 max-w-3xl text-lg text-[color:var(--muted)]">
+          <p className="mt-7 max-w-2xl text-lg text-[color:var(--muted)]">
             {copy.preorderDescription}
-          </p>
-          <p className="mt-2 max-w-3xl text-sm text-[color:var(--muted)]">
-            {copy.pricingDescription}
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link
               href="/faq"
-              className="inline-block rounded-full bg-[color:var(--accent)] px-5 py-2.5 text-sm font-semibold text-white"
+              className="inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-6 py-3 text-sm font-semibold text-white"
+              style={{ boxShadow: "0 0 24px color-mix(in srgb, var(--accent) 45%, transparent)" }}
             >
-              Why AI-ready builds?
+              Why AI-ready builds? →
             </Link>
             <Link
               href="/about"
-              className="inline-block rounded-full bg-[color:var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-white"
+              className="inline-block rounded-full border border-[color:var(--panel-border)] px-6 py-3 text-sm font-semibold text-[color:var(--muted)]"
             >
               About us
             </Link>
