@@ -203,3 +203,29 @@ body {
 .inner-card {
   background: color-mix(in srgb, var(--panel-border) 22%, transparent);
 }
+
+/* Descriptor tag — different from nav label-pill: accent-tinted, not muted */
+.category-tag {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  line-height: 1;
+  padding: 6px 12px;
+  letter-spacing: 0.04em;
+}
+
+/* Scroll-reveal: starts hidden, transitions to visible when .is-visible is added */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -72,7 +72,6 @@ export default async function ProfilePage({
   const { profileBuilds, compactAiSystems } = getHomeCatalogView();
 
   const t = {
-    back: lang === "et" ? "← Tagasi" : "← Back",
     viewMore: lang === "et" ? "Vaata lähemalt" : "View more details",
     chip: lang === "et" ? "Kiip" : "Chip",
     memory: lang === "et" ? "Mälu" : "Memory",
@@ -97,9 +96,6 @@ export default async function ProfilePage({
         <header className="mb-10">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Link href="/" className="label-pill inline-block">
-                {t.back}
-              </Link>
               <Link href="/faq" className="label-pill inline-block">
                 FAQ
               </Link>
@@ -110,7 +106,7 @@ export default async function ProfilePage({
               <AuthPanel />
             </div>
           </div>
-          <p className="label-pill mt-6 inline-block">{lang === "et" ? meta.label.et : meta.label.en}</p>
+          <p className="category-tag mt-6 inline-block">{lang === "et" ? meta.label.et : meta.label.en}</p>
           <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight md:text-6xl">
             {lang === "et" ? meta.name.et : meta.name.en}
           </h1>

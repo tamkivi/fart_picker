@@ -27,8 +27,6 @@ export default async function BuildDetailPage({
   }
 
   const t = {
-    home: lang === "et" ? "Avaleht" : "Home",
-    about: lang === "et" ? "Meist" : "About",
     profile: lang === "et" ? "Profiil" : "Profile",
     coreConfig: lang === "et" ? "Põhikonfiguratsioon" : "Core Configuration",
     perfPower: lang === "et" ? "Jõudlus & Võimsus" : "Performance & Power",
@@ -41,7 +39,6 @@ export default async function BuildDetailPage({
     cooling: lang === "et" ? "Jahutusprofiil" : "Cooling profile",
     estPrice: lang === "et" ? "Hinnanguline hind" : "Estimated price",
     sourceRefs: lang === "et" ? "Allikad" : "Source references",
-    back: lang === "et" ? "← Tagasi ehitusprofiilide juurde" : "← Back to build profiles",
   };
 
   return (
@@ -51,12 +48,6 @@ export default async function BuildDetailPage({
         <header className="mb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Link href="/" className="label-pill inline-block">
-                {t.home}
-              </Link>
-              <Link href="/about" className="label-pill inline-block">
-                {t.about}
-              </Link>
               <Link href="/faq" className="label-pill inline-block">
                 FAQ
               </Link>
@@ -102,11 +93,6 @@ export default async function BuildDetailPage({
           <p className="mt-3 text-sm text-[color:var(--muted)]">{build.notes}</p>
           <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">{t.sourceRefs}: {build.sourceRefs}</p>
           <PurchaseBuildButton itemType="profile_build" itemId={build.id} priceEur={build.estimatedPriceEur} />
-          <div className="mt-5">
-            <Link href={`/profiles/${build.profileKey}`} className="label-pill inline-block">
-              {t.back}
-            </Link>
-          </div>
         </section>
       </section>
     </main>
