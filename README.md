@@ -1,115 +1,136 @@
-# AI Build Picker
+# fart_picker
 
-A web app for building PC configurations optimized for AI and local LLM workloads.
+> An AI-focused PC build configurator — curated profiles, Estonian market pricing, and a clean opinionated catalog.
 
-## Overview
-This project helps users choose compatible PC parts with a focus on machine learning and inference performance. Instead of generic gaming recommendations, the platform prioritizes components that matter most for AI use cases such as local LLM hosting, fine-tuning, and accelerated data workflows.
+---
 
-## Target Users
-- AI enthusiasts running local language models
-- Developers building LLM-powered applications
-- Researchers assembling cost-efficient training or inference rigs
-- Creators who need balanced compute for AI + content workflows
+## What it is
 
-## Core Website Features
+A Next.js catalog app for people who want to run AI workloads locally and don't want to waste time figuring out which parts actually matter for that.
 
-### 1. AI Build Profiles
-Prebuilt intents that shape recommendations:
-- Local LLM Inference (7B to 70B class guidance)
-- LLM Fine-Tuning Starter Rig
-- Hybrid AI + Gaming Build
-- Workstation AI Build (multi-GPU capable)
+Instead of a generic PC part picker, this is a curated set of **build profiles** grouped by use case:
 
-### 2. Intelligent Part Selection
-- GPU-first recommendations (VRAM, CUDA/ROCm support, tensor throughput)
-- CPU recommendations by AI pipeline bottleneck type
-- RAM sizing guidance based on model size and context length
-- Storage recommendations for model libraries and datasets
+- **Local LLM Inference** — 7B to 70B quantized models, maximum VRAM per euro
+- **LLM Fine-Tune Starter** — enough system RAM and stable thermals for LoRA runs
+- **Hybrid AI + Gaming** — balanced compute for daytime AI work, high-refresh gaming at night
+- **AI Workstation** — Threadripper and Xeon platforms with ECC RAM for serious multi-session serving
+- **macOS Based Systems** — Apple Silicon Mac minis pre-configured with Ollama and LM Studio
 
-### 3. Compatibility Engine
-- Socket/chipset compatibility checks
-- PSU headroom validation for GPU spikes
-- Case clearance checks for large AI-class GPUs
-- Thermals and airflow warnings for sustained inference loads
+Each profile links to specific builds with estimated token throughput, system power draw, PSU recommendations, and a price computed from live Estonian market data.
 
-### 4. LLM Capability Mode
-A dedicated mode that evaluates builds for LLM readiness:
-- Estimated max model size by VRAM/system RAM
-- Quantization strategy suggestions (e.g., 4-bit/8-bit)
-- Expected token throughput ranges by hardware tier
-- Recommendations for popular runtimes (Ollama, llama.cpp, vLLM, etc.)
+---
 
-### 5. Budget-Aware Optimization
-- User-defined budget with intelligent tradeoff suggestions
-- "Performance per euro" scoring for AI workloads
-- Upgrade path suggestions (what to buy now vs later)
+## Why
 
-### 6. Explainable Recommendations
-Each suggested part includes plain-language rationale:
-- Why this part was selected
-- AI-specific pros/cons
-- Potential bottlenecks
-- Alternative options at nearby price points
+Most PC configurators optimize for gaming. AI workloads have completely different bottlenecks — VRAM bandwidth matters more than clock speed, ECC matters for long training runs, and thermals under sustained inference loads are nothing like a gaming session. This tries to make those tradeoffs legible without burying the user in spec sheets.
 
-## Example User Flow
-1. User selects "Local LLM Inference" profile.
-2. User sets budget (e.g., €1,800).
-3. Website proposes a full compatible build.
-4. LLM Capability Mode reports likely supported model sizes and speed expectations.
-5. User swaps parts and sees live compatibility + capability updates.
+The Estonian focus is practical: components are sourced and priced from local vendors, not Amazon DE.
 
-## Future Enhancements
-- Live price aggregation from major retailers
-- Region-based availability filters
-- Community build sharing with benchmark submissions
-- Power cost estimation for always-on inference systems
-- Optional assistant chat for build guidance
+---
 
-## Mission
-Make AI-capable PC building practical, transparent, and accessible by translating complex hardware constraints into clear, actionable recommendations.
+## Stack
 
-## Current App Scope
-The project includes a `Next.js + TypeScript + Tailwind CSS` frontend with production-ready catalog and account/payment flows for:
-- AI build profile selection
-- Parts recommendation table with AI scoring
-- Compatibility check panel
-- LLM capability mode output
-- Saved build snapshot + export CTA
-- Daily Estonian market pricing refresh (average listing price + 15% assembly/setup)
+- **Next.js 15** (App Router, server + client components)
+- **TypeScript**
+- **Tailwind CSS v4** — `@theme inline`, `color-mix()` for theming, dark/light toggle
+- **SQLite** via Node.js built-in `DatabaseSync` — no ORM, no external DB dependency in dev
+- **Stripe** — checkout sessions, webhook signature verification
+- **Nodemailer** — order confirmation emails
+- **Vercel** — hosting + cron for daily Estonian pricing refresh
 
-## Run Locally
+---
+
+## Project structure
+
+```
+src/
+  app/
+    page.tsx                        # Homepage — build profile browser
+    profiles/[key]/page.tsx         # Per-profile build listing
+    builds/[id]/page.tsx            # Individual build detail + purchase
+    catalog/[type]/[id]/page.tsx    # Component detail pages
+    faq/page.tsx                    # FAQ including "which profile is right for me"
+    about/page.tsx
+    orders/page.tsx                 # Order history (authenticated)
+    admin/orders/page.tsx           # Admin order view
+    api/
+      auth/                         # Register, login, logout, session check
+      payments/                     # Stripe checkout, session status, webhook
+      cron/estonian-pricing/        # Daily price refresh job
+  components/
+    auth-panel.tsx
+    back-button.tsx
+    language-switch.tsx
+    masthead.tsx
+    profile-builds-browser.tsx
+    purchase-build-button.tsx
+    theme-toggle.tsx
+  lib/
+    catalog-db.ts                   # SQLite schema + seed data
+    server/catalog-service.ts       # Read-only catalog queries
+    server/estonian-pricing-service.ts
+    server/lang.ts                  # ET/EN language detection
+    auth-session.ts
+    stripe.ts
+data/
+  catalog.db                        # Auto-generated, gitignored
+```
+
+---
+
+## Run locally
+
 ```bash
 npm install
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+Open `http://localhost:3000`.
 
-## Local Catalog Database
-- Uses local SQLite at `data/catalog.db`
-- Auto-creates tables for GPUs, CPUs, and prebuilts
-- Auto-seeds starter records on first run
-- Auto-seeds `profile_builds` options for each AI build profile
-- Profile build recommendations are seeded from online vendor data (NVIDIA, AMD, Intel specs/pricing)
-- Prices are stored and displayed in EUR
+The SQLite database auto-creates and seeds on first run. Delete `data/catalog.db` to force a re-seed (e.g. after adding new builds or components to `catalog-db.ts`).
 
-## Account System
-- Adds SQLite-backed `users` and `sessions` tables
-- Secure password hashing via Node `scrypt`
+---
+
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in what you need:
+
+```
+ADMIN_SETUP_CODE       # one-time code to register the admin account
+DATABASE_URL           # Postgres URL for production (accounts/orders persist here)
+STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET
+NEXT_PUBLIC_APP_URL    # e.g. https://your-domain.com — needed for Stripe return URLs
+SMTP_HOST
+SMTP_PORT
+SMTP_SECURE
+SMTP_USER
+SMTP_PASS
+SMTP_FROM_EMAIL
+CRON_SECRET            # authorizes manual cron calls
+ESTONIAN_PRICE_MAX_ITEMS   # max components per cron run (default: 120)
+ESTONIAN_PRICE_CONCURRENCY # concurrent listing checks (default: 6)
+```
+
+You can run the app locally without any of these — auth and payments just won't work.
+
+---
+
+## Estonian pricing
+
+A Vercel cron job runs daily at 03:00 UTC (`/api/cron/estonian-pricing`). It checks Estonian retailer listings for each component, computes a per-part market average, and applies a 15% assembly/setup buffer. Updated prices feed into the preorder display.
+
+---
+
+## i18n
+
+The app is bilingual — Estonian (`et`) and English (`en`). Language is detected server-side per request and passed down via `getRequestLanguage()`. All UI strings use a simple `lang === "et" ? ... : ...` ternary pattern; no external i18n library.
+
+---
+
+## Auth
+
+- SQLite-backed `users` and `sessions` tables (dev), Postgres in production
+- Password hashing via Node.js built-in `scrypt`
 - HTTP-only cookie sessions
 - Roles: `USER`, `DEV`, `ADMIN`
-### Optional environment variables
-- `ADMIN_SETUP_CODE` required to create the admin account
-- `DATABASE_URL` strongly recommended in production for persistent accounts/sessions/orders
-- `STRIPE_SECRET_KEY` required for checkout session creation
-- `STRIPE_WEBHOOK_SECRET` required for webhook signature verification
-- `NEXT_PUBLIC_APP_URL` required for Stripe success/cancel return URLs
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM_EMAIL` for payment confirmation emails
-- `CRON_SECRET` to authorize manual cron calls
-- `ESTONIAN_PRICE_MAX_ITEMS` max components to evaluate per cron run
-- `ESTONIAN_PRICE_CONCURRENCY` concurrent outbound listing checks
-
-## Daily Estonian Price Refresh
-- Vercel cron runs `/api/cron/estonian-pricing` once daily (`03:00 UTC`) via `vercel.json`.
-- The job checks Estonian store/search listings, computes per-part market average, then applies a 15% assembly/setup markup.
-- Updated preorder prices are written into `estonian_price_checks` and displayed on the homepage.
