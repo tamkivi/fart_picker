@@ -42,18 +42,18 @@ export function ProfileBuildsBrowser({ profiles }: { profiles: Profile[] }) {
   const profileCardsRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <section className="mt-32">
+    <section className="mt-16">
       <div className="flex justify-center mb-16">
         <button
           type="button"
           onClick={() => {
             if (profileCardsRef.current) slowScrollTo(profileCardsRef.current);
           }}
-          className="rounded-2xl border-2 border-[color:var(--accent)] px-10 py-5 text-center font-semibold transition hover:-translate-y-0.5"
+          className="rounded-2xl border-2 border-[color:var(--accent)] px-14 py-7 text-center font-semibold transition hover:-translate-y-0.5"
           style={{ boxShadow: "0 0 32px color-mix(in srgb, var(--accent) 25%, transparent)" }}
         >
-          <span className="font-display block text-xl">Show me the different kinds of builds!</span>
-          <span className="mt-1 block text-sm text-[color:var(--muted)]">
+          <span className="font-display block text-2xl">Show me the different kinds of builds!</span>
+          <span className="mt-1.5 block text-sm text-[color:var(--muted)]">
             Local inference · Fine-tuning · Hybrid · AI Workstations
           </span>
         </button>

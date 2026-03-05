@@ -26,6 +26,24 @@ export default async function BuildDetailPage({
     notFound();
   }
 
+  const t = {
+    home: lang === "et" ? "Avaleht" : "Home",
+    about: lang === "et" ? "Meist" : "About",
+    profile: lang === "et" ? "Profiil" : "Profile",
+    coreConfig: lang === "et" ? "Põhikonfiguratsioon" : "Core Configuration",
+    perfPower: lang === "et" ? "Jõudlus & Võimsus" : "Performance & Power",
+    buildNotes: lang === "et" ? "Ehituse märkmed" : "Build Notes",
+    storage: lang === "et" ? "Salvestus" : "Storage",
+    modelTarget: lang === "et" ? "Sihitmudel" : "Model target",
+    throughput: lang === "et" ? "Hinnanguline läbilaskevõime" : "Estimated throughput",
+    sysPower: lang === "et" ? "Hinnanguline süsteemivõimsus" : "Estimated system power",
+    recPsu: lang === "et" ? "Soovitatav toiteplokk" : "Recommended PSU",
+    cooling: lang === "et" ? "Jahutusprofiil" : "Cooling profile",
+    estPrice: lang === "et" ? "Hinnanguline hind" : "Estimated price",
+    sourceRefs: lang === "et" ? "Allikad" : "Source references",
+    back: lang === "et" ? "← Tagasi ehitusprofiilide juurde" : "← Back to build profiles",
+  };
+
   return (
     <main className="min-h-screen px-6 py-10 md:px-12">
       <section className="mx-auto max-w-6xl">
@@ -34,10 +52,10 @@ export default async function BuildDetailPage({
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
               <Link href="/" className="label-pill inline-block">
-                Home
+                {t.home}
               </Link>
               <Link href="/about" className="label-pill inline-block">
-                About
+                {t.about}
               </Link>
               <Link href="/faq" className="label-pill inline-block">
                 FAQ
@@ -52,41 +70,41 @@ export default async function BuildDetailPage({
 
           <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight md:text-6xl">{build.buildName}</h1>
           <p className="mt-3 text-lg text-[color:var(--muted)]">{build.bestFor}</p>
-          <p className="mt-2 text-sm text-[color:var(--muted)]">Profile: {build.profileLabel}</p>
+          <p className="mt-2 text-sm text-[color:var(--muted)]">{t.profile}: {build.profileLabel}</p>
         </header>
 
         <div className="grid gap-6 md:grid-cols-2">
           <section className="wireframe-panel p-6">
-            <h2 className="font-display text-3xl font-semibold">Core Configuration</h2>
+            <h2 className="font-display text-3xl font-semibold">{t.coreConfig}</h2>
             <div className="mt-4 space-y-2 font-mono text-xs text-[color:var(--muted)]">
               <p>CPU: {build.cpuName}</p>
               <p>GPU: {build.gpuName}</p>
               <p>RAM: {build.ramGb}GB</p>
-              <p>Storage: {build.storageGb}GB</p>
-              <p>Model target: {build.targetModel}</p>
+              <p>{t.storage}: {build.storageGb}GB</p>
+              <p>{t.modelTarget}: {build.targetModel}</p>
             </div>
           </section>
 
           <section className="wireframe-panel p-6">
-            <h2 className="font-display text-3xl font-semibold">Performance & Power</h2>
+            <h2 className="font-display text-3xl font-semibold">{t.perfPower}</h2>
             <div className="mt-4 space-y-2 font-mono text-xs text-[color:var(--muted)]">
-              <p>Estimated throughput: {build.estimatedTokensPerSec}</p>
-              <p>Estimated system power: ~{build.estimatedSystemPowerW}W</p>
-              <p>Recommended PSU: {build.recommendedPsuW}W</p>
-              <p>Cooling profile: {build.coolingProfile}</p>
-              <p className="pt-2 text-base font-semibold text-[color:var(--foreground)]">Estimated price: €{build.estimatedPriceEur}</p>
+              <p>{t.throughput}: {build.estimatedTokensPerSec}</p>
+              <p>{t.sysPower}: ~{build.estimatedSystemPowerW}W</p>
+              <p>{t.recPsu}: {build.recommendedPsuW}W</p>
+              <p>{t.cooling}: {build.coolingProfile}</p>
+              <p className="pt-2 text-base font-semibold text-[color:var(--foreground)]">{t.estPrice}: €{build.estimatedPriceEur}</p>
             </div>
           </section>
         </div>
 
         <section className="wireframe-panel mt-6 p-6">
-          <h2 className="font-display text-3xl font-semibold">Build Notes</h2>
+          <h2 className="font-display text-3xl font-semibold">{t.buildNotes}</h2>
           <p className="mt-3 text-sm text-[color:var(--muted)]">{build.notes}</p>
-          <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Source references: {build.sourceRefs}</p>
+          <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">{t.sourceRefs}: {build.sourceRefs}</p>
           <PurchaseBuildButton itemType="profile_build" itemId={build.id} priceEur={build.estimatedPriceEur} />
           <div className="mt-5">
-            <Link href="/" className="label-pill inline-block">
-              Back to build profiles
+            <Link href={`/profiles/${build.profileKey}`} className="label-pill inline-block">
+              {t.back}
             </Link>
           </div>
         </section>

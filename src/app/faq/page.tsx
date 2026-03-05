@@ -178,6 +178,7 @@ export default async function FaqPage() {
             className="wireframe-panel border-2 border-[color:var(--accent)] p-8 md:p-10 stagger-in"
             style={{
               animationDelay: `${300 + faqs.length * 80}ms`,
+              scrollMarginTop: "5rem",
               boxShadow:
                 "0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 32px color-mix(in srgb, var(--accent) 18%, transparent)",
             }}

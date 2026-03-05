@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, JetBrains_Mono, Public_Sans } from "next/font/google";
+import { BackButton } from "@/components/back-button";
 import { getRequestLanguage } from "@/lib/server/lang";
 import "./globals.css";
 
@@ -36,6 +37,7 @@ export default async function RootLayout({
         className={`${publicSans.variable} ${fraunces.variable} ${jetBrainsMono.variable} antialiased`}
       >
         <div aria-hidden="true" className="gradient-bg" />
+        <BackButton />
         <div className="flex min-h-screen flex-col">
           <div className="flex-1">{children}</div>
           <footer className="px-6 pb-[1.5em] pt-[1em] text-center text-xs text-[color:var(--muted)]">
