@@ -117,14 +117,14 @@ export default async function Home() {
 
         <ProfileBuildsBrowser profiles={profileCards} builds={browserBuilds} />
 
-        <section className="wireframe-panel mt-10 p-8 stagger-in" style={{ animationDelay: "900ms" }}>
+        <section className="wireframe-panel mt-14 p-8 stagger-in" style={{ animationDelay: "900ms" }}>
           <div className="mb-8 flex items-center justify-between">
             <h3 className="font-display text-3xl font-semibold">Compact AI Systems (Mac mini)</h3>
             <span className="label-pill">{compactAiSystems.length} listed</span>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-3">
             {compactAiSystems.map((system) => (
-              <article key={system.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+              <article key={system.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                 <p className="font-display text-xl font-semibold">{system.name}</p>
                 <p className="mt-1 text-sm text-[color:var(--muted)]">{system.vendor}</p>
                 <p className="mt-2 text-sm text-[color:var(--muted)]">{system.bestFor}</p>
@@ -144,18 +144,18 @@ export default async function Home() {
           </div>
         </section>
 
-        <div className="mt-10 grid items-start gap-8 md:grid-cols-2">
+        <div className="mt-14 grid items-start gap-10 md:grid-cols-2">
           <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "350ms" }}>
             <details className="catalog-dropdown">
               <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">GPU Catalog</h3>
                 <span className="label-pill">{gpus.length} listed</span>
               </summary>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {gpus.map((gpu) => (
-                  <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+                  <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{gpu.name}</p>
-                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {gpu.brand} | {gpu.vramGb}GB VRAM | {gpu.architecture} | AI {gpu.aiScore}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{gpu.preorderPriceEur}</p>
@@ -172,11 +172,11 @@ export default async function Home() {
                 <h3 className="font-display text-3xl font-semibold">CPU Catalog</h3>
                 <span className="label-pill">{cpus.length} listed</span>
               </summary>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {cpus.map((cpu) => (
-                  <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+                  <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{cpu.name}</p>
-                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.aiScore}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">Preorder: €{cpu.preorderPriceEur}</p>
@@ -188,18 +188,18 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-8 grid items-start gap-8 md:grid-cols-2">
+        <div className="mt-10 grid items-start gap-10 md:grid-cols-2">
           <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "620ms" }}>
             <details className="catalog-dropdown">
               <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">RAM Kits</h3>
                 <span className="label-pill">{ramKits.length} listed</span>
               </summary>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {ramKits.map((ramKit) => (
-                  <div key={ramKit.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+                  <div key={ramKit.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{ramKit.name}</p>
-                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {ramKit.modules} | {ramKit.ddrGen} {ramKit.speedMtS} | {ramKit.casLatency}
                     </p>
                     <p className="font-mono text-xs text-[color:var(--muted)]">Profiles: {ramKit.profileSupport}</p>
@@ -217,11 +217,11 @@ export default async function Home() {
                 <h3 className="font-display text-3xl font-semibold">Motherboards</h3>
                 <span className="label-pill">{motherboards.length} listed</span>
               </summary>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {motherboards.map((motherboard) => (
-                  <div key={motherboard.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+                  <div key={motherboard.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{motherboard.name}</p>
-                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {motherboard.socket} | {motherboard.chipset} | {motherboard.memorySupport}
                     </p>
                     <p className="font-mono text-xs text-[color:var(--muted)]">
@@ -236,18 +236,18 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-8 grid items-start gap-8 md:grid-cols-2">
+        <div className="mt-10 grid items-start gap-10 md:grid-cols-2">
           <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "760ms" }}>
             <details className="catalog-dropdown">
               <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Power Supplies</h3>
                 <span className="label-pill">{powerSupplies.length} listed</span>
               </summary>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {powerSupplies.map((psu) => (
-                  <div key={psu.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+                  <div key={psu.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{psu.name}</p>
-                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {psu.wattage}W | {psu.efficiencyRating} | {psu.atxStandard}
                     </p>
                     <p className="font-mono text-xs text-[color:var(--muted)]">
@@ -267,11 +267,11 @@ export default async function Home() {
                 <h3 className="font-display text-3xl font-semibold">Cases</h3>
                 <span className="label-pill">{cases.length} listed</span>
               </summary>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {cases.map((pcCase) => (
-                  <div key={pcCase.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+                  <div key={pcCase.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{pcCase.name}</p>
-                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {pcCase.formFactor} | Max GPU: {pcCase.maxGpuMm}mm
                     </p>
                     <p className="font-mono text-xs text-[color:var(--muted)]">
@@ -286,18 +286,18 @@ export default async function Home() {
           </section>
         </div>
 
-        <div className="mt-8 grid items-start gap-8 md:grid-cols-2">
+        <div className="mt-10 grid items-start gap-10 md:grid-cols-2">
           <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "970ms" }}>
             <details className="catalog-dropdown">
               <summary className="catalog-summary mb-8 flex cursor-pointer list-none items-center justify-between">
                 <h3 className="font-display text-3xl font-semibold">Storage Drives</h3>
                 <span className="label-pill">{storageDrives.length} listed</span>
               </summary>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {storageDrives.map((drive) => (
-                  <div key={drive.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+                  <div key={drive.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{drive.name}</p>
-                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {drive.driveType} | {drive.interface} | {drive.capacityGb}GB
                     </p>
                     <p className="font-mono text-xs text-[color:var(--muted)]">
@@ -317,11 +317,11 @@ export default async function Home() {
                 <h3 className="font-display text-3xl font-semibold">CPU Coolers</h3>
                 <span className="label-pill">{cpuCoolers.length} listed</span>
               </summary>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {cpuCoolers.map((cooler) => (
-                  <div key={cooler.id} className="rounded-lg border border-[color:var(--panel-border)] p-5">
+                  <div key={cooler.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{cooler.name}</p>
-                    <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                    <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {cooler.coolerType} | Size: {cooler.radiatorOrHeightMm}mm | Max TDP: {cooler.maxTdpW}W
                     </p>
                     <p className="font-mono text-xs text-[color:var(--muted)]">
