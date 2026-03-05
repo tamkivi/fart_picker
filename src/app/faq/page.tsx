@@ -171,6 +171,199 @@ export default async function FaqPage() {
               </div>
             </section>
           ))}
+
+          {/* Which One Should I Pick? */}
+          <section
+            id="which-one"
+            className="wireframe-panel border-2 border-[color:var(--accent)] p-8 md:p-10 stagger-in"
+            style={{
+              animationDelay: `${300 + faqs.length * 80}ms`,
+              boxShadow:
+                "0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 32px color-mix(in srgb, var(--accent) 18%, transparent)",
+            }}
+          >
+            <p className="label-pill inline-block mb-4">
+              {lang === "et" ? "Abi valimisel" : "Decision guide"}
+            </p>
+            <h2 className="font-display text-3xl font-semibold">
+              {lang === "et" ? "Milline ehitusprofiil sobib mulle?" : "Which one should I pick?"}
+            </h2>
+            <p className="mt-4 max-w-2xl text-[color:var(--muted)]">
+              {lang === "et"
+                ? "Lühike ülevaade igast profiilist — eelised, puudused ja kellele see sobib."
+                : "A quick breakdown of each build category — benefits, drawbacks, and who it's actually for."}
+            </p>
+
+            <div className="mt-8 grid gap-5 md:grid-cols-2">
+              {lang === "et" ? (
+                <>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6">
+                    <p className="label-pill inline-block mb-3">Kõige populaarsem</p>
+                    <h3 className="font-display text-xl font-semibold">Kohalik LLM Inferents</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">Parim igapäevaseks mudeli kasutamiseks, kodeerimisel, dokumendi Q&A jaoks.</p>
+                    <ul className="arrow-list mt-4 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Parim VRAM hinna kohta</li>
+                      <li>Käitab 7B–70B mudeleid hea kiirusega</li>
+                      <li>Töötab CUDA ja ROCm-iga</li>
+                    </ul>
+                    <p className="mt-4 text-sm font-semibold text-[color:var(--muted)]">Piirangud:</p>
+                    <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Ei ole peenhäälestusele optimeeritud</li>
+                      <li>Väiksem VRAM piirab 70B+ mudeleid</li>
+                    </ul>
+                  </div>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6">
+                    <p className="label-pill inline-block mb-3">Treenimiseks</p>
+                    <h3 className="font-display text-xl font-semibold">LLM Peenhäälestuse Starter</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">ML inseneridele, kes soovivad LoRA adaptereid treenida või kohandatud mudeleid luua.</p>
+                    <ul className="arrow-list mt-4 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Rohkem süsteemi RAM-i pikaks treeninguks</li>
+                      <li>Stabiilne jahutus pikematele seansidele</li>
+                      <li>LoRA ja QLoRA tugi karbist välja</li>
+                    </ul>
+                    <p className="mt-4 text-sm font-semibold text-[color:var(--muted)]">Piirangud:</p>
+                    <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Kallim kui pelgalt vestlemiseks</li>
+                      <li>Liigne võimsus, kui tahad ainult mudeleid kasutada</li>
+                    </ul>
+                  </div>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6">
+                    <p className="label-pill inline-block mb-3">Kaks-ühes</p>
+                    <h3 className="font-display text-xl font-semibold">Hübriid AI + Mäng</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">Neile, kes soovivad ühe arvutiga nii AI arendada kui ka mängida.</p>
+                    <ul className="arrow-list mt-4 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Kõrge sagedusega mängimine + kohalik inferents</li>
+                      <li>Üks masin kõike tegema</li>
+                      <li>Hea tasakaal hinna ja jõudluse vahel</li>
+                    </ul>
+                    <p className="mt-4 text-sm font-semibold text-[color:var(--muted)]">Piirangud:</p>
+                    <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>GPU on kompromiss — vähem VRAM-i kui puhtal AI-ehitusel</li>
+                      <li>Kõrgem tippvõimsus</li>
+                    </ul>
+                  </div>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6">
+                    <p className="label-pill inline-block mb-3">Suured töökoormused</p>
+                    <h3 className="font-display text-xl font-semibold">AI Tööjaam</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">Teadlastele, laboridele, mitmekasutajalise serveri jaoks või 70B+ mudelitele.</p>
+                    <ul className="arrow-list mt-4 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Threadripper/Xeon + 256–512 GB RAM</li>
+                      <li>ECC mälu töökindluseks</li>
+                      <li>Võimeline käitama mitut seanssi korraga</li>
+                    </ul>
+                    <p className="mt-4 text-sm font-semibold text-[color:var(--muted)]">Piirangud:</p>
+                    <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Kallis (€5000–8000+)</li>
+                      <li>Vajab tõsist jahutust ja kõrget voolutarvet</li>
+                    </ul>
+                  </div>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6 md:col-span-2">
+                    <p className="label-pill inline-block mb-3">Lihtsaim algus</p>
+                    <h3 className="font-display text-xl font-semibold">MacOS Põhised Süsteemid</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">Algajatele, macOS kasutajatele ja neile, kes soovivad nullseadistusega valmis minna.</p>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <ul className="arrow-list space-y-1.5 text-sm text-[color:var(--muted)]">
+                        <li>Plug-and-play, eelinstalleeritud tarkvara</li>
+                        <li>Ühtne mälu toimib kui VRAM</li>
+                        <li>Vaikne, energiasäästlik, kompaktne</li>
+                      </ul>
+                      <div>
+                        <p className="text-sm font-semibold text-[color:var(--muted)]">Piirangud:</p>
+                        <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                          <li>Piiratud mudelitega, mis mahuvad 16–96 GB-sse</li>
+                          <li>CUDA puudub, ROCm ei kehti</li>
+                          <li>Ei saa GPU-d uuendada</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6">
+                    <p className="label-pill inline-block mb-3">Most popular</p>
+                    <h3 className="font-display text-xl font-semibold">Local LLM Inference</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">Best for daily AI use, coding assistants, document Q&A, and general model experimentation.</p>
+                    <ul className="arrow-list mt-4 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Best VRAM per euro of any category</li>
+                      <li>Runs 7B–70B models at usable speed</li>
+                      <li>Works with CUDA and ROCm ecosystems</li>
+                    </ul>
+                    <p className="mt-4 text-sm font-semibold text-[color:var(--muted)]">Drawbacks:</p>
+                    <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Not optimised for fine-tuning runs</li>
+                      <li>Smaller VRAM limits 70B+ models</li>
+                    </ul>
+                  </div>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6">
+                    <p className="label-pill inline-block mb-3">For training</p>
+                    <h3 className="font-display text-xl font-semibold">LLM Fine-Tune Starter</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">For ML engineers who want to train LoRA adapters or build custom models on top of open-source bases.</p>
+                    <ul className="arrow-list mt-4 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>More system RAM for long training sessions</li>
+                      <li>Stable cooling for extended workloads</li>
+                      <li>LoRA and QLoRA support out of the box</li>
+                    </ul>
+                    <p className="mt-4 text-sm font-semibold text-[color:var(--muted)]">Drawbacks:</p>
+                    <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>More expensive than inference-only builds</li>
+                      <li>Overkill if you only want to chat with models</li>
+                    </ul>
+                  </div>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6">
+                    <p className="label-pill inline-block mb-3">Two in one</p>
+                    <h3 className="font-display text-xl font-semibold">Hybrid AI + Gaming</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">For people who want a single machine that handles both AI development and high-refresh gaming.</p>
+                    <ul className="arrow-list mt-4 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>High-refresh gaming + local inference</li>
+                      <li>One machine for everything</li>
+                      <li>Good price-to-performance balance</li>
+                    </ul>
+                    <p className="mt-4 text-sm font-semibold text-[color:var(--muted)]">Drawbacks:</p>
+                    <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>GPU is a compromise — less VRAM than a pure AI build</li>
+                      <li>Higher peak power draw</li>
+                    </ul>
+                  </div>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6">
+                    <p className="label-pill inline-block mb-3">Heavy workloads</p>
+                    <h3 className="font-display text-xl font-semibold">AI Workstation</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">For researchers, labs, multi-user inference serving, or anyone needing to run 70B+ models reliably.</p>
+                    <ul className="arrow-list mt-4 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Threadripper or Xeon + 256–512 GB system RAM</li>
+                      <li>ECC memory for reliability in always-on setups</li>
+                      <li>Can run multiple concurrent sessions</li>
+                    </ul>
+                    <p className="mt-4 text-sm font-semibold text-[color:var(--muted)]">Drawbacks:</p>
+                    <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                      <li>Expensive — €5,000–8,000+</li>
+                      <li>Needs serious cooling and high wattage PSU</li>
+                    </ul>
+                  </div>
+                  <div className="inner-card rounded-xl border border-[color:var(--panel-border)] p-6 md:col-span-2">
+                    <p className="label-pill inline-block mb-3">Easiest start</p>
+                    <h3 className="font-display text-xl font-semibold">MacOS Based Systems</h3>
+                    <p className="mt-2 text-sm text-[color:var(--muted)]">For beginners, macOS users, and anyone who wants a zero-setup AI machine that just works.</p>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <ul className="arrow-list space-y-1.5 text-sm text-[color:var(--muted)]">
+                        <li>Plug and play — pre-installed software stack</li>
+                        <li>Unified memory acts as VRAM (no separate GPU needed)</li>
+                        <li>Silent, power-efficient, compact</li>
+                      </ul>
+                      <div>
+                        <p className="text-sm font-semibold text-[color:var(--muted)]">Drawbacks:</p>
+                        <ul className="arrow-list mt-2 space-y-1.5 text-sm text-[color:var(--muted)]">
+                          <li>Limited to models that fit in 16–96 GB unified memory</li>
+                          <li>No CUDA; ROCm doesn&apos;t apply</li>
+                          <li>GPU is not upgradeable</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
         </div>
 
         <div className="mt-12 stagger-in" style={{ animationDelay: "700ms" }}>

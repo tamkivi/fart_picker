@@ -101,7 +101,7 @@ export function ProfileBuildsBrowser({ profiles }: { profiles: Profile[] }) {
 
       <div className="mt-8 flex justify-center">
         <Link
-          href="/faq"
+          href="/faq#which-one"
           className="rounded-full border border-[color:var(--panel-border)] bg-[color:var(--panel)] px-6 py-3 text-sm font-semibold text-[color:var(--muted)] transition hover:-translate-y-0.5 hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
         >
           Which one should I pick?
