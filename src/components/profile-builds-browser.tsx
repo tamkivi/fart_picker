@@ -114,13 +114,6 @@ export function ProfileBuildsBrowser({
               onClick={() => {
                 setActiveProfileKey(profile.key);
                 setSelectedBuildId(buildsByProfile[profile.key]?.[0]?.id ?? null);
-                requestAnimationFrame(() => {
-                  const el = possibleBuildsRef.current;
-                  if (!el) return;
-                  if (el.getBoundingClientRect().top > window.innerHeight) {
-                    slowScrollTo(el);
-                  }
-                });
               }}
               className={`wireframe-panel stagger-in p-7 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
               style={{

@@ -46,8 +46,8 @@ body {
   content: "";
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.5;
+  filter: blur(80px);
+  opacity: 0.65;
 }
 
 .gradient-bg::before {
@@ -56,7 +56,7 @@ body {
   top: -25%;
   left: -12%;
   background: #bdd6cb;
-  animation: drift-a 20s ease-in-out infinite alternate;
+  animation: drift-a 12s ease-in-out infinite alternate;
 }
 
 .gradient-bg::after {
@@ -65,17 +65,17 @@ body {
   top: -20%;
   right: -12%;
   background: #d4ddf2;
-  animation: drift-b 26s ease-in-out infinite alternate;
+  animation: drift-b 16s ease-in-out infinite alternate;
 }
 
 [data-theme="dark"] .gradient-bg::before {
   background: #24423b;
-  opacity: 0.6;
+  opacity: 0.75;
 }
 
 [data-theme="dark"] .gradient-bg::after {
   background: #29395f;
-  opacity: 0.6;
+  opacity: 0.75;
 }
 
 @keyframes drift-a {

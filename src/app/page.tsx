@@ -119,7 +119,7 @@ export default async function Home() {
 
         <section className="wireframe-panel mt-14 p-8 stagger-in" style={{ animationDelay: "900ms" }}>
           <div className="mb-8 flex items-center justify-between">
-            <h3 className="font-display text-3xl font-semibold">MacOS based systems</h3>
+            <h3 className="font-display text-3xl font-semibold">MacOS Based Systems</h3>
             <span className="label-pill">{compactAiSystems.length} listed</span>
           </div>
           <div className="grid gap-8 md:grid-cols-3">
@@ -131,7 +131,13 @@ export default async function Home() {
                 <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Chip: {system.chip}</p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">Memory: {system.memoryGb}GB unified</p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">Storage: {system.storageGb}GB SSD</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">Software: {system.installedSoftware}</p>
+                <p className="font-mono text-xs text-[color:var(--muted)]">
+                  Software: {(() => {
+                    const apps = system.installedSoftware.split(", ");
+                    const shown = apps.slice(0, 3).join(", ");
+                    return apps.length > 3 ? `${shown} and more` : shown;
+                  })()}
+                </p>
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-semibold">Preorder €{system.preorderPriceEur}</span>
                   <span className="label-pill">{system.inStock ? "In Stock" : "Out of Stock"}</span>

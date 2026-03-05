@@ -27,6 +27,22 @@ export default async function FaqPage() {
             q: "Kas kontot on vaja?",
             a: "Mitte sirvimiseks. Ehitused ja kataloog on kõigile avalikud. Kontot on vaja ainult eeltellimuse tegemiseks.",
           },
+          {
+            q: "NVIDIA vs AMD — kumba valida AI jaoks?",
+            a: "NVIDIA on turvalisem valik: CUDA on tööstusstandard ja enamus AI tarkvara töötab sellega ilma probleemideta. AMD kaardid on sageli odavamad sama VRAM-i eest, kuid ROCm tugi on vähemküps ja mõned tööriistad vajavad lisaseadistust. Kui tahad, et kõik lihtsalt töötaks, vali NVIDIA. Kui oled valmis natuke nokitsema ja tahad rohkem VRAM-i oma rahaga, AMD väärib kaalumist.",
+          },
+          {
+            q: "Kas tavaline mänguriarvuti sobib AI jaoks?",
+            a: "Osaliselt. Mänguriarvutid on optimeeritud kõrge kaadrisageduse jaoks, kuid AI vajab palju VRAM-i suurte mudelite jaoks. Enamik mängurikaarte on 8–12 GB VRAM-iga, mis piirab käitatavaid mudelisuurusi. Siinsed AI-spetsiifilised ehitused valivad kaardid maksimaalse VRAM-i ja AI-jõudluse järgi, mitte mänguskooride järgi.",
+          },
+          {
+            q: "Kui palju kiirem on kohalik AI võrreldes ChatGPT-ga?",
+            a: "See sõltub riistvarast. Hea GPU-ga (nt RTX 4090) võid saavutada 50–100 tokenit sekundis 7B mudelitega — mis on kiirem kui enamik inimesi lugeda suudab. Suuremad mudelid on aeglasemad. Peamine eelis ei ole kiirus, vaid privaatsus, kulud ja offline-kasutus: peale esialgset riistavara kulu on iga päring tasuta.",
+          },
+          {
+            q: "Millist tarkvara on vaja alustamiseks?",
+            a: "Ollama on lihtsaim alguspunkt — installeeri, tõmba mudel käsuga 'ollama pull llama3' ja juba saad vestlema. Open WebUI annab sulle ChatGPT-sarnase veebiliidese selle peale. Kõik see on eelinstalleeritud kõikidele fart_picker ehitustele.",
+          },
         ]
       : [
           {
@@ -44,6 +60,22 @@ export default async function FaqPage() {
           {
             q: "Do I need an account to browse?",
             a: "No. Browsing builds and the catalog is fully public. You only need an account to place a preorder.",
+          },
+          {
+            q: "NVIDIA vs AMD — which is better for AI?",
+            a: "NVIDIA is the safer choice: CUDA is the industry standard and almost all AI software works with it out of the box. AMD cards often offer more VRAM for the money, but ROCm support is less mature and some tools need extra setup. If you want everything to just work, pick NVIDIA. If you're comfortable tinkering and want more VRAM per euro, AMD is worth considering.",
+          },
+          {
+            q: "Can I use a regular gaming PC for local AI?",
+            a: "Partly. Gaming PCs are tuned for high frame rates, but AI needs a lot of VRAM to hold large models. Most gaming cards top out at 8–12 GB VRAM, which limits which model sizes you can run. The AI-specific builds here pick cards based on maximum VRAM and AI throughput, not gaming benchmark scores.",
+          },
+          {
+            q: "How fast is local AI compared to ChatGPT?",
+            a: "It depends on your hardware. A good GPU (e.g. RTX 4090) can hit 50–100 tokens per second on 7B models — faster than most people read. Larger models are slower. The main advantage isn't raw speed, it's privacy, cost, and offline access: after the upfront hardware cost, every query is free.",
+          },
+          {
+            q: "What software do I need to get started?",
+            a: "Ollama is the easiest starting point — install it, pull a model with 'ollama pull llama3', and you're chatting. Open WebUI gives you a ChatGPT-style web interface on top. Both come pre-installed on all fart_picker builds so you're ready to go the moment you power on.",
           },
         ];
 
