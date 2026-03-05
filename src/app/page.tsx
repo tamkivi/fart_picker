@@ -119,12 +119,12 @@ export default async function Home() {
 
         <section className="wireframe-panel mt-14 p-8 stagger-in" style={{ animationDelay: "900ms" }}>
           <div className="mb-8 flex items-center justify-between">
-            <h3 className="font-display text-3xl font-semibold">Compact AI Systems (Mac mini)</h3>
+            <h3 className="font-display text-3xl font-semibold">MacOS based systems</h3>
             <span className="label-pill">{compactAiSystems.length} listed</span>
           </div>
           <div className="grid gap-8 md:grid-cols-3">
             {compactAiSystems.map((system) => (
-              <article key={system.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+              <article key={system.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                 <p className="font-display text-xl font-semibold">{system.name}</p>
                 <p className="mt-1 text-sm text-[color:var(--muted)]">{system.vendor}</p>
                 <p className="mt-2 text-sm text-[color:var(--muted)]">{system.bestFor}</p>
@@ -136,9 +136,11 @@ export default async function Home() {
                   <span className="font-semibold">Preorder €{system.preorderPriceEur}</span>
                   <span className="label-pill">{system.inStock ? "In Stock" : "Out of Stock"}</span>
                 </div>
-                <Link href={`/catalog/compact_ai_system/${system.id}`} className="mt-5 inline-block label-pill">
-                  View more details
-                </Link>
+                <div className="mt-5 flex justify-end">
+                  <Link href={`/catalog/compact_ai_system/${system.id}`} className="rounded-md bg-[color:var(--accent-2)] px-3 py-1 text-xs font-semibold text-white">
+                    View more details
+                  </Link>
+                </div>
               </article>
             ))}
           </div>
@@ -153,7 +155,7 @@ export default async function Home() {
               </summary>
               <div className="space-y-6">
                 {gpus.map((gpu) => (
-                  <div key={gpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+                  <div key={gpu.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{gpu.name}</p>
                     <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {gpu.brand} | {gpu.vramGb}GB VRAM | {gpu.architecture} | AI {gpu.aiScore}
@@ -174,7 +176,7 @@ export default async function Home() {
               </summary>
               <div className="space-y-6">
                 {cpus.map((cpu) => (
-                  <div key={cpu.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+                  <div key={cpu.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{cpu.name}</p>
                     <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {cpu.brand} | {cpu.cores}C/{cpu.threads}T | {cpu.socket} | AI {cpu.aiScore}
@@ -197,7 +199,7 @@ export default async function Home() {
               </summary>
               <div className="space-y-6">
                 {ramKits.map((ramKit) => (
-                  <div key={ramKit.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+                  <div key={ramKit.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{ramKit.name}</p>
                     <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {ramKit.modules} | {ramKit.ddrGen} {ramKit.speedMtS} | {ramKit.casLatency}
@@ -219,7 +221,7 @@ export default async function Home() {
               </summary>
               <div className="space-y-6">
                 {motherboards.map((motherboard) => (
-                  <div key={motherboard.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+                  <div key={motherboard.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{motherboard.name}</p>
                     <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {motherboard.socket} | {motherboard.chipset} | {motherboard.memorySupport}
@@ -245,7 +247,7 @@ export default async function Home() {
               </summary>
               <div className="space-y-6">
                 {powerSupplies.map((psu) => (
-                  <div key={psu.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+                  <div key={psu.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{psu.name}</p>
                     <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {psu.wattage}W | {psu.efficiencyRating} | {psu.atxStandard}
@@ -269,7 +271,7 @@ export default async function Home() {
               </summary>
               <div className="space-y-6">
                 {cases.map((pcCase) => (
-                  <div key={pcCase.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+                  <div key={pcCase.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{pcCase.name}</p>
                     <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {pcCase.formFactor} | Max GPU: {pcCase.maxGpuMm}mm
@@ -295,7 +297,7 @@ export default async function Home() {
               </summary>
               <div className="space-y-6">
                 {storageDrives.map((drive) => (
-                  <div key={drive.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+                  <div key={drive.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{drive.name}</p>
                     <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {drive.driveType} | {drive.interface} | {drive.capacityGb}GB
@@ -319,7 +321,7 @@ export default async function Home() {
               </summary>
               <div className="space-y-6">
                 {cpuCoolers.map((cooler) => (
-                  <div key={cooler.id} className="rounded-lg border border-[color:var(--panel-border)] p-6">
+                  <div key={cooler.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
                     <p className="font-semibold">{cooler.name}</p>
                     <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
                       {cooler.coolerType} | Size: {cooler.radiatorOrHeightMm}mm | Max TDP: {cooler.maxTdpW}W

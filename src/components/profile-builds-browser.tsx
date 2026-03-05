@@ -163,7 +163,7 @@ export function ProfileBuildsBrowser({
             {activeBuilds.map((build) => (
               <article
                 key={build.id}
-                className={`rounded-lg border p-6 text-left transition ${selectedBuild?.id === build.id ? "border-[color:var(--accent)] ring-1 ring-[color:var(--accent)]" : "border-[color:var(--panel-border)] hover:-translate-y-0.5"}`}
+                className={`inner-card rounded-lg border p-6 text-left transition ${selectedBuild?.id === build.id ? "border-[color:var(--accent)] ring-1 ring-[color:var(--accent)]" : "border-[color:var(--panel-border)] hover:-translate-y-0.5"}`}
                 onClick={() => setSelectedBuildId(build.id)}
               >
                 <p className="font-display text-xl font-semibold">{build.build_name}</p>
@@ -175,10 +175,7 @@ export function ProfileBuildsBrowser({
                 </p>
                 <p className="font-mono text-xs text-[color:var(--muted)]">Model target: {build.target_model}</p>
                 <p className="mt-5 text-base font-semibold">Est. €{build.estimated_price_eur}</p>
-                <div className="mt-4 flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
-                    {selectedBuild?.id === build.id ? "Selected build" : "Click to select"}
-                  </p>
+                <div className="mt-4 flex items-center justify-end gap-2">
                   <Link
                     href={`/builds/${build.id}`}
                     className="rounded-md bg-[color:var(--accent-2)] px-3 py-1 text-xs font-semibold text-white"
