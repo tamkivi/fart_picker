@@ -54,29 +54,9 @@ export default async function Home() {
     powerSupplies,
     cases,
     motherboards,
-    compactAiSystems,
     storageDrives,
     cpuCoolers,
-    profileBuilds,
   } = getHomeCatalogView();
-  const browserBuilds = profileBuilds.map((build) => ({
-    id: build.id,
-    profile_key: build.profileKey,
-    build_name: build.buildName,
-    target_model: build.targetModel,
-    ram_gb: build.ramGb,
-    storage_gb: build.storageGb,
-    estimated_price_eur: build.estimatedPriceEur,
-    best_for: build.bestFor,
-    estimated_tokens_per_sec: build.estimatedTokensPerSec,
-    estimated_system_power_w: build.estimatedSystemPowerW,
-    recommended_psu_w: build.recommendedPsuW,
-    cooling_profile: build.coolingProfile,
-    notes: build.notes,
-    source_refs: build.sourceRefs,
-    cpu_name: build.cpuName,
-    gpu_name: build.gpuName,
-  }));
 
   return (
     <main className="min-h-screen px-6 py-16 md:px-12">
@@ -121,42 +101,7 @@ export default async function Home() {
           </div>
         </header>
 
-        <ProfileBuildsBrowser profiles={profileCards} builds={browserBuilds} />
-
-        <section className="wireframe-panel mt-14 p-8 stagger-in" style={{ animationDelay: "900ms" }}>
-          <div className="mb-8 flex items-center justify-between">
-            <h3 className="font-display text-3xl font-semibold">MacOS Based Systems</h3>
-            <span className="label-pill">{compactAiSystems.length} listed</span>
-          </div>
-          <div className="grid gap-8 md:grid-cols-3">
-            {compactAiSystems.map((system) => (
-              <article key={system.id} className="inner-card rounded-lg border border-[color:var(--panel-border)] p-6">
-                <p className="font-display text-xl font-semibold">{system.name}</p>
-                <p className="mt-1 text-sm text-[color:var(--muted)]">{system.vendor}</p>
-                <p className="mt-2 text-sm text-[color:var(--muted)]">{system.bestFor}</p>
-                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">Chip: {system.chip}</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">Memory: {system.memoryGb}GB unified</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">Storage: {system.storageGb}GB SSD</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">
-                  Software: {(() => {
-                    const apps = system.installedSoftware.split(", ");
-                    const shown = apps.slice(0, 3).join(", ");
-                    return apps.length > 3 ? `${shown} and more` : shown;
-                  })()}
-                </p>
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="font-semibold">Preorder €{system.preorderPriceEur}</span>
-                  <span className="label-pill">{system.inStock ? "In Stock" : "Out of Stock"}</span>
-                </div>
-                <div className="mt-5 flex justify-end">
-                  <Link href={`/catalog/compact_ai_system/${system.id}`} className="rounded-md bg-[color:var(--accent-2)] px-3 py-1 text-xs font-semibold text-white">
-                    View more details
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <ProfileBuildsBrowser profiles={profileCards} />
 
         <div className="mt-14 grid items-start gap-10 md:grid-cols-2">
           <section className="wireframe-panel p-8 stagger-in" style={{ animationDelay: "350ms" }}>

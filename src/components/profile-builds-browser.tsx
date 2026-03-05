@@ -1,32 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useRef } from "react";
 
 type Profile = {
   key: string;
   name: string;
   target: string;
   priority: string;
-};
-
-type ProfileBuild = {
-  id: number;
-  profile_key: string;
-  build_name: string;
-  target_model: string;
-  ram_gb: number;
-  storage_gb: number;
-  estimated_price_eur: number;
-  best_for: string;
-  estimated_tokens_per_sec: string;
-  estimated_system_power_w: number;
-  recommended_psu_w: number;
-  cooling_profile: string;
-  notes: string;
-  source_refs: string;
-  cpu_name: string;
-  gpu_name: string;
 };
 
 const categoryLabelByProfileKey: Record<string, string> = {
@@ -57,32 +38,8 @@ function slowScrollTo(el: HTMLElement, duration = 1400) {
   requestAnimationFrame(step);
 }
 
-export function ProfileBuildsBrowser({
-  profiles,
-  builds,
-}: {
-  profiles: Profile[];
-  builds: ProfileBuild[];
-}) {
-  const [activeProfileKey, setActiveProfileKey] = useState(profiles[0]?.key ?? "");
-  const [selectedBuildId, setSelectedBuildId] = useState<number | null>(null);
-  const possibleBuildsRef = useRef<HTMLElement | null>(null);
+export function ProfileBuildsBrowser({ profiles }: { profiles: Profile[] }) {
   const profileCardsRef = useRef<HTMLDivElement | null>(null);
-
-  const buildsByProfile = useMemo(() => {
-    return builds.reduce<Record<string, ProfileBuild[]>>((acc, build) => {
-      if (!acc[build.profile_key]) {
-        acc[build.profile_key] = [];
-      }
-      acc[build.profile_key].push(build);
-      return acc;
-    }, {});
-  }, [builds]);
-
-  const activeBuilds = buildsByProfile[activeProfileKey] ?? [];
-  const activeProfile = profiles.find((profile) => profile.key === activeProfileKey);
-  const selectedBuild =
-    activeBuilds.find((build) => build.id === selectedBuildId) ?? (activeBuilds.length > 0 ? activeBuilds[0] : null);
 
   return (
     <section className="mt-32">
@@ -106,38 +63,41 @@ export function ProfileBuildsBrowser({
         Choose the type of build you&apos;re looking for:
       </p>
       <div ref={profileCardsRef} className="grid gap-6 grid-cols-2">
-        {profiles.map((profile, index) => {
-          const isActive = activeProfileKey === profile.key;
-          return (
-            <button
-              key={profile.key}
-              type="button"
-              onClick={() => {
-                setActiveProfileKey(profile.key);
-                setSelectedBuildId(buildsByProfile[profile.key]?.[0]?.id ?? null);
-              }}
-              className={`wireframe-panel stagger-in p-7 text-left transition ${isActive ? "ring-2 ring-[color:var(--accent)]" : "hover:-translate-y-0.5"}`}
-              style={{
-                animationDelay: `${index * 100}ms`,
-                ...(isActive ? { background: "color-mix(in srgb, var(--accent) 8%, var(--panel))" } : {}),
-              }}
-            >
-              <p
-                className="label-pill inline-block"
-                style={isActive ? { background: "var(--accent)", color: "#fff", borderColor: "var(--accent)" } : {}}
-              >
-                {categoryLabelByProfileKey[profile.key] ?? "Build Category"}
-              </p>
-              <h2 className="font-display mt-6 text-2xl font-semibold">{profile.name}</h2>
-              <p className="mt-4 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
-              <p className="mt-3 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
-              <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
-                {isActive ? "↳ Selected" : "Click to view builds"}
-              </p>
-            </button>
-          );
-        })}
+        {profiles.map((profile, index) => (
+          <Link
+            key={profile.key}
+            href={`/profiles/${profile.key}`}
+            className="wireframe-panel stagger-in p-7 text-left transition hover:-translate-y-0.5"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <p className="label-pill inline-block">
+              {categoryLabelByProfileKey[profile.key] ?? "Build Category"}
+            </p>
+            <h2 className="font-display mt-6 text-2xl font-semibold">{profile.name}</h2>
+            <p className="mt-4 font-[Helvetica] text-sm text-[color:var(--muted)]">Target: {profile.target}</p>
+            <p className="mt-3 font-mono text-sm text-[color:var(--muted)]">Priority: {profile.priority}</p>
+            <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
+              View builds →
+            </p>
+          </Link>
+        ))}
       </div>
+
+      <Link
+        href="/profiles/macos-systems"
+        className="wireframe-panel mt-6 flex items-center justify-between gap-6 p-7 transition hover:-translate-y-0.5"
+      >
+        <div>
+          <p className="label-pill inline-block">Compact &amp; Quiet</p>
+          <h2 className="font-display mt-4 text-2xl font-semibold">MacOS Based Systems</h2>
+          <p className="mt-2 text-sm text-[color:var(--muted)]">
+            Apple Silicon Mac minis · pre-configured for local AI workloads · no GPU required
+          </p>
+        </div>
+        <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-[color:var(--accent)]">
+          View systems →
+        </p>
+      </Link>
 
       <div className="mt-8 flex justify-center">
         <Link
@@ -147,57 +107,6 @@ export function ProfileBuildsBrowser({
           Which one should I pick?
         </Link>
       </div>
-
-      <section ref={possibleBuildsRef} className="wireframe-panel mt-20 p-8">
-        <div className="mb-8 flex items-center justify-between gap-3">
-          <div>
-            <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
-            <p className="mt-2 text-sm text-[color:var(--muted)]">
-              Selected category:{" "}
-              <span
-                className="font-semibold"
-                style={{ color: "var(--accent)" }}
-              >
-                {activeProfile?.name ?? "None"}
-              </span>
-            </p>
-          </div>
-          <span className="label-pill">{activeBuilds.length} options</span>
-        </div>
-
-        {activeBuilds.length === 0 ? (
-          <p className="text-sm text-[color:var(--muted)]">No builds available for this profile yet.</p>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-3">
-            {activeBuilds.map((build) => (
-              <article
-                key={build.id}
-                className={`inner-card rounded-lg border p-6 text-left transition ${selectedBuild?.id === build.id ? "border-[color:var(--accent)] ring-1 ring-[color:var(--accent)]" : "border-[color:var(--panel-border)] hover:-translate-y-0.5"}`}
-                onClick={() => setSelectedBuildId(build.id)}
-              >
-                <p className="font-display text-xl font-semibold">{build.build_name}</p>
-                <p className="mt-3 text-sm text-[color:var(--muted)]">{build.notes}</p>
-                <p className="mt-5 font-mono text-xs text-[color:var(--muted)]">GPU: {build.gpu_name}</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">CPU: {build.cpu_name}</p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">
-                  RAM: {build.ram_gb}GB | Storage: {build.storage_gb}GB
-                </p>
-                <p className="font-mono text-xs text-[color:var(--muted)]">Model target: {build.target_model}</p>
-                <p className="mt-5 text-base font-semibold">Est. €{build.estimated_price_eur}</p>
-                <div className="mt-4 flex items-center justify-end gap-2">
-                  <Link
-                    href={`/builds/${build.id}`}
-                    className="rounded-md bg-[color:var(--accent-2)] px-3 py-1 text-xs font-semibold text-white"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    View More Details
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
     </section>
   );
 }
