@@ -33,6 +33,7 @@ const categoryLabelByProfileKey: Record<string, string> = {
   "local-llm-inference": "Cost-Efficient Local LLMs",
   "llm-finetune-starter": "Tuning Stability",
   "hybrid-ai-gaming": "Multitasking",
+  "workstation-ai": "Maximum Throughput",
 };
 
 function slowScrollTo(el: HTMLElement, duration = 1400) {
@@ -96,7 +97,7 @@ export function ProfileBuildsBrowser({
         >
           <span className="font-display block text-xl">Show me the different kinds of builds!</span>
           <span className="mt-1 block text-sm text-[color:var(--muted)]">
-            Local inference · Fine-tuning · Hybrid AI + Gaming
+            Local inference · Fine-tuning · Hybrid · AI Workstations
           </span>
         </button>
       </div>
@@ -104,7 +105,7 @@ export function ProfileBuildsBrowser({
       <p className="mb-6 text-sm font-semibold text-[color:var(--muted)]">
         Choose the type of build you&apos;re looking for:
       </p>
-      <div ref={profileCardsRef} className="grid gap-8 md:grid-cols-3">
+      <div ref={profileCardsRef} className="grid gap-6 grid-cols-2">
         {profiles.map((profile, index) => {
           const isActive = activeProfileKey === profile.key;
           return (
@@ -138,12 +139,27 @@ export function ProfileBuildsBrowser({
         })}
       </div>
 
+      <div className="mt-8 flex justify-center">
+        <Link
+          href="/faq"
+          className="rounded-full border border-[color:var(--panel-border)] bg-[color:var(--panel)] px-6 py-3 text-sm font-semibold text-[color:var(--muted)] transition hover:-translate-y-0.5 hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+        >
+          Which one should I pick?
+        </Link>
+      </div>
+
       <section ref={possibleBuildsRef} className="wireframe-panel mt-20 p-8">
         <div className="mb-8 flex items-center justify-between gap-3">
           <div>
             <h3 className="font-display text-3xl font-semibold">Possible Builds</h3>
-            <p className="mt-1 text-sm text-[color:var(--muted)]">
-              Selected category: {activeProfile?.name ?? "None"}
+            <p className="mt-2 text-sm text-[color:var(--muted)]">
+              Selected category:{" "}
+              <span
+                className="font-semibold"
+                style={{ color: "var(--accent)" }}
+              >
+                {activeProfile?.name ?? "None"}
+              </span>
             </p>
           </div>
           <span className="label-pill">{activeBuilds.length} options</span>
