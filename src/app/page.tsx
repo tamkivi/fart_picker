@@ -39,6 +39,12 @@ export default async function Home() {
       target: "Daytime dev, nighttime play",
       priority: "Balanced CPU/GPU spend",
     },
+    {
+      key: "workstation-ai",
+      name: "AI Workstation",
+      target: "Threadripper / Xeon + 48GB+ VRAM",
+      priority: "Maximum throughput & RAM",
+    },
   ];
 
   const {

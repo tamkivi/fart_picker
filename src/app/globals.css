@@ -103,13 +103,14 @@ body {
 
 .wireframe-panel {
   border: 1px solid var(--panel-border);
-  background: linear-gradient(180deg, var(--panel) 0%, #fff 100%);
+  background: linear-gradient(180deg, #fff 0%, #f7f4ed 100%);
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(20, 35, 54, 0.08);
+  box-shadow: 0 8px 32px rgba(20, 35, 54, 0.13);
 }
 
 [data-theme="dark"] .wireframe-panel {
-  background: linear-gradient(180deg, var(--panel) 0%, #131a24 100%);
+  background: linear-gradient(180deg, #1f2c3d 0%, #111720 100%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 .label-pill {
@@ -118,9 +119,9 @@ body {
   border-radius: 999px;
   color: var(--muted);
   font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1;
-  padding: 7px 10px;
+  padding: 9px 14px;
 }
 
 [data-theme="dark"] .label-pill {
@@ -200,5 +201,5 @@ body {
 }
 
 .inner-card {
-  background: color-mix(in srgb, var(--panel-border) 14%, transparent);
+  background: color-mix(in srgb, var(--panel-border) 22%, transparent);
 }
